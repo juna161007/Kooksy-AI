@@ -944,20 +944,41 @@ USER WEBSITE IDEA:
 
 Generate a complete, working website project.
 
-Return the answer in this exact structure:
+Return 
 
-PROJECT_NAME:
-Give a short project name.
+1. Project name
+2. Brief description
+3. Complete index.html code
+4. Complete style.css code
+5. Complete app.js code
 
-DESCRIPTION:
-Explain the website briefly.
-
-FILES:
-For every file, use this exact format:
-
+Use these exact file labels:
 FILE: index.html
-```html
-Complete HTML code here
+FILE: style.css
+FILE: app.js
+
+Put each file's complete code in a separate fenced code block.
+Do not omit essential code. Make the website responsive,
+professional, accessible, and suitable for the user's idea.
+Do not claim that the website has been deployed.
+"""
+
+    try:
+        result = call_groq(
+            [{"role": "user", "content": prompt}],
+            language=language,
+        )
+
+        return jsonify({
+            "success": True,
+            "result": result,
+            "idea": idea,
+            "message": "Website code generated successfully."
+        })
+
+    except RuntimeError as exc:
+        return error_response(str(exc), 502)
+
 
 # ---------------------------------------------------------
 # FEEDBACK
