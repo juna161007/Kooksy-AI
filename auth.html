@@ -1,0 +1,270 @@
+```html
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Kooksy AI · Welcome</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body class="auth-body">
+
+    <main class="auth-card">
+
+        <div class="brand-mark">✦</div>
+
+        <h1>Kooksy AI</h1>
+        <p class="muted">Intelligence with a Spark.</p>
+
+        <!-- Login / Signup tabs -->
+        <div class="tabs">
+            <button
+                type="button"
+                class="tab active"
+                data-tab="login"
+            >
+                Log in
+            </button>
+
+            <button
+                type="button"
+                class="tab"
+                data-tab="signup"
+            >
+                Create account
+            </button>
+        </div>
+
+        <!-- Authentication form -->
+        <form id="authForm">
+
+            <!-- Optional signup fields -->
+            <div id="extraFields" hidden>
+
+                <label for="name">
+                    Display name (optional)
+                    <input
+                        id="name"
+                        name="name"
+                        type="text"
+                        maxlength="100"
+                        autocomplete="name"
+                    >
+                </label>
+
+                <label for="role">
+                    Role (optional)
+                    <input
+                        id="role"
+                        name="role"
+                        type="text"
+                        maxlength="100"
+                        placeholder="Student, developer…"
+                    >
+                </label>
+
+                <label for="state">
+                    State (optional)
+                    <input
+                        id="state"
+                        name="state"
+                        type="text"
+                        maxlength="100"
+                        placeholder="Tamil Nadu"
+                    >
+                </label>
+
+            </div>
+
+            <!-- Username -->
+            <label for="username">
+                KOOKSY username
+                <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    minlength="3"
+                    maxlength="30"
+                    required
+                    autocomplete="username"
+                    placeholder="Enter your username"
+                >
+            </label>
+
+            <!-- Password -->
+            <label for="password">
+                Password
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    minlength="8"
+                    required
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                >
+            </label>
+
+            <!-- Submit button -->
+            <button
+                class="primary full"
+                type="submit"
+                id="submitAuth"
+            >
+                Log in
+            </button>
+
+            <!-- Error / success messages -->
+            <p
+                id="authMessage"
+                class="status"
+                role="status"
+                aria-live="polite"
+            ></p>
+
+        </form>
+
+        <p class="small muted">
+            Your Kooksy account is separate from Google and Instagram accounts.
+        </p>
+
+    </main>
+
+    <script>
+    (() => {
+        "use strict";
+
+        let tab = "login";
+
+        const form = document.getElementById("authForm");
+        const message = document.getElementById("authMessage");
+        const submitButton = document.getElementById("submitAuth");
+        const extraFields = document.getElementById("extraFields");
+        const passwordInput = document.getElementById("password");
+
+        const tabs = document.querySelectorAll(".tab");
+
+        // Switch between Login and Signup
+        tabs.forEach((button) => {
+            button.addEventListener("click", () => {
+                tab = button.dataset.tab;
+
+                tabs.forEach((item) => {
+                    item.classList.toggle("active", item === button);
+                });
+
+                extraFields.hidden = tab !== "signup";
+
+                passwordInput.autocomplete =
+                    tab === "login"
+                        ? "current-password"
+                        : "new-password";
+
+                submitButton.textContent =
+                    tab === "login"
+                        ? "Log in"
+                        : "Create account";
+
+                message.textContent = "";
+                message.classList.remove("error", "success");
+            });
+        });
+
+        // Submit Login or Signup
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            message.textContent = "";
+            message.classList.remove("error", "success");
+
+            submitButton.disabled = true;
+            submitButton.textContent =
+                tab === "login" ? "Logging in..." : "Creating account...";
+
+            try {
+                const formData = new FormData(form);
+
+                // Existing Flask routes: /login and /signup
+                const endpoint =
+                    tab === "login" ? "/login" : "/signup";
+
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams(formData).toString(),
+                    redirect: "follow"
+                });
+
+                // Successful login/signup normally redirects to "/".
+                if (response.redirected) {
+                    const destination = new URL(response.url);
+
+                    if (destination.origin === window.location.origin) {
+                        window.location.href = destination.href;
+                        return;
+                    }
+
+                    throw new Error("Unexpected redirect destination.");
+                }
+
+                // Handle a successful response without a redirect.
+                if (response.ok) {
+                    window.location.href = "/";
+                    return;
+                }
+
+                // Read the error returned by Flask.
+                const page = await response.text();
+
+                const parser = new DOMParser();
+                const documentPage = parser.parseFromString(
+                    page,
+                    "text/html"
+                );
+
+                const errorText =
+                    documentPage.querySelector(".status")
+                        ?.textContent
+                        ?.trim();
+
+                message.textContent =
+                    errorText ||
+                    (response.status === 409
+                        ? "This username may already be taken."
+                        : "Could not continue. Please check your details.");
+
+                message.classList.add("error");
+
+            } catch (error) {
+                console.error("Authentication error:", error);
+
+                message.textContent =
+                    "Unable to connect to the server. Please try again.";
+
+                message.classList.add("error");
+
+            } finally {
+                submitButton.disabled = false;
+
+                submitButton.textContent =
+                    tab === "login"
+                        ? "Log in"
+                        : "Create account";
+            }
+        });
+
+    })();
+    </script>
+
+</body>
+</html>
+```

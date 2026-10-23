@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c0d12">
+  <meta name="description" content="Kooksy AI — Intelligence with a Spark. A multilingual AI assistant and website idea-to-code workspace.">
+  <title>Kooksy AI — Intelligence with a Spark</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">✦</span>
+      <div>
+        <b>Kooksy AI</b>
+        <small>Intelligence with a Spark.</small>
+      </div>
+    </div>
+
+    <button class="primary full" id="newChat" type="button">
+      ＋ New Chat
+    </button>
+
+    <nav aria-label="Workspace">
+      <button class="nav-item active" data-page="assistant" type="button">
+        <span aria-hidden="true">◉</span>
+        <span data-i18n="assistant">AI Assistant</span>
+      </button>
+
+      <button class="nav-item" data-page="history" type="button">
+        <span aria-hidden="true">◷</span>
+        <span data-i18n="history">Echoes of Time</span>
+      </button>
+
+      <button class="nav-item" data-page="goal" type="button">
+        <span aria-hidden="true">✧</span>
+        <span data-i18n="goal">Agent Goal</span>
+      </button>
+
+      <button class="nav-item" data-page="creator" type="button">
+        <span aria-hidden="true">⌘</span>
+        <span data-i18n="creator">Website Creator</span>
+      </button>
+
+      <button class="nav-item" data-page="feedback" type="button">
+        <span aria-hidden="true">☆</span>
+        <span data-i18n="feedback">Feedback</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <span class="online-dot"></span>
+      Groq-powered AI
+      <small>Build · Learn · Create</small>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <button
+        class="icon-btn mobile-only"
+        id="menuBtn"
+        type="button"
+        aria-label="Open navigation"
+      >☰</button>
+
+      <div>
+        <strong id="pageTitle">AI Assistant</strong>
+        <p class="muted small">Intelligence with a Spark.</p>
+      </div>
+
+      <div class="top-actions">
+        <label class="sr-only" for="language">Response language</label>
+        <select id="language" aria-label="Response language">
+          {% for code, name in languages.items() %}
+          <option value="{{ code }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+
+        <label class="sr-only" for="mode">Assistant mode</label>
+        <select id="mode" aria-label="Assistant mode">
+          <option value="normal">Normal User</option>
+          <option value="developer">Developer Mode</option>
+        </select>
+
+        <span
+          class="user-pill"
+          id="userPill"
+          title="Signed-in username"
+        >{{ username }}</span>
+
+        <button class="ghost" id="logout" type="button">
+          Log out
+        </button>
+      </div>
+    </header>
+
+    <!-- AI ASSISTANT PAGE -->
+    <section class="page active" id="page-assistant">
+
+      <div class="welcome" id="welcome">
+        <div class="hero-icon" aria-hidden="true">✦</div>
+
+        <p class="eyebrow">KOOKSY AI · YOUR AI WORKSPACE</p>
+
+        <h1>Intelligence with a Spark.</h1>
+
+        <p>
+          Ask questions, continue a conversation, analyse a file,
+          or turn your idea into a website project.
+        </p>
+
+        <div class="suggestions">
+          <button class="suggestion" type="button">
+            Explain AI in simple words
+          </button>
+
+          <button class="suggestion" type="button">
+            Help me plan a project
+          </button>
+
+          <button class="suggestion" type="button">
+            Write and explain Python code
+          </button>
+        </div>
+      </div>
+
+      <!-- CHAT MESSAGES -->
+      <div
+        id="chatMessages"
+        class="chat-messages"
+        aria-live="polite"
+        aria-relevant="additions"
+      ></div>
+
+      <!-- MESSAGE COMPOSER -->
+      <div class="composer-wrap">
+
+        <div class="upload-row">
+          <label class="file-label">
+            ＋ Analyse a file
+            <input
+              id="fileInput"
+              type="file"
+              accept=".csv,.txt,.md,.pdf,.docx,.json,.py,.html,.css,.js,.log"
+            >
+          </label>
+
+          <span class="muted small">
+            CSV, TXT, MD, PDF, DOCX, JSON, PY, HTML, CSS, JS, LOG · Max 10 MB
+          </span>
+
+          <span
+            id="fileStatus"
+            class="small"
+            role="status"
+          ></span>
+        </div>
+
+        <div class="composer">
+          <textarea
+            id="prompt"
+            maxlength="1000000"
+            rows="2"
+            placeholder="Message Kooksy AI…"
+            aria-label="Message Kooksy AI"
+          ></textarea>
+
+          <div class="composer-tools">
+            <span class="muted small" id="charCount">
+              0 / 1000000
+            </span>
+
+            <div>
+              <button
+                class="icon-btn"
+                id="voiceBtn"
+                type="button"
+                title="Start voice input"
+                aria-label="Start voice input"
+              >🎙</button>
+
+              <button
+                class="icon-btn"
+                id="stopVoiceBtn"
+                type="button"
+                title="Stop listening"
+                aria-label="Stop listening"
+              >■</button>
+
+              <button
+                class="primary send-btn"
+                id="sendBtn"
+                type="button"
+              >Send ↑</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="muted tiny">
+          AI can make mistakes. Verify important information and review
+          generated code before using it.
+        </p>
+      </div>
+    </section>
+
+    <!-- CHAT HISTORY PAGE -->
+    <section class="page" id="page-history">
+      <div class="section-head">
+        <div class="eyebrow">YOUR CONVERSATIONS</div>
+
+        <h2>Echoes of Time</h2>
+
+        <p class="muted">
+          Open a previous conversation or delete one you no longer need.
+          Only your own saved chats should be available.
+        </p>
+      </div>
+
+      <div id="historyList" class="history-list">
+        <p class="muted">Loading your conversations…</p>
+      </div>
+    </section>
+
+    <!-- AGENT GOAL PAGE -->
+    <section class="page" id="page-goal">
+      <div class="tool-card">
+        <div class="eyebrow">AGENTIC PLANNING</div>
+
+        <h2>Turn a goal into a plan</h2>
+
+        <p class="muted">
+          Describe a real-world task. Kooksy AI will outline steps,
+          success criteria, risks, limitations, and actions that need
+          your approval.
+        </p>
+
+        <label for="goalInput">What do you want to achieve?</label>
+
+        <textarea
+          id="goalInput"
+          rows="5"
+          maxlength="20000"
+          placeholder="Example: Plan a student portfolio website and explain how I can publish it…"
+        ></textarea>
+
+        <button class="primary" id="goalBtn" type="button">
+          Generate plan ✦
+        </button>
+
+        <div
+          class="result prose"
+          id="goalResult"
+          aria-live="polite"
+        ></div>
+
+        <p class="muted small">
+          This feature generates a plan. It does not independently open apps,
+          send emails, make purchases, or deploy a website.
+        </p>
+      </div>
+    </section>
+
+    <!-- WEBSITE CREATOR PAGE -->
+    <section class="page" id="page-creator">
+      <div class="tool-card">
+        <div class="eyebrow">IDEA → FRONTEND + BACKEND</div>
+
+        <h2>Website Creator</h2>
+
+        <p class="muted">
+          Describe your idea in your own words. Kooksy AI can generate
+          frontend and backend source files and provide deployment
+          instructions in your selected response language.
+        </p>
+
+        <label for="ideaInput">
+          Describe your website or project idea
+        </label>
+
+        <textarea
+          id="ideaInput"
+          rows="10"
+          maxlength="1000000"
+          placeholder="Example: Create a student task manager with signup, login, task creation, due dates, search, and a dashboard. Use HTML, CSS, JavaScript, Python Flask, and SQLite…"
+        ></textarea>
+
+        <div class="creator-bottom">
+          <span class="muted small" id="ideaCount">
+            0 / 1000000
+          </span>
+
+          <button
+            class="primary"
+            id="createWebsiteBtn"
+            type="button"
+          >Generate project ✦</button>
+        </div>
+
+        <p class="muted small">
+          The generated project can include frontend and backend code
+          plus deployment guidance. Kooksy AI does not deploy it directly.
+          Review and test generated code before production use.
+        </p>
+
+        <div
+          id="creatorResult"
+          class="result"
+          aria-live="polite"
+        ></div>
+      </div>
+    </section>
+
+    <!-- FEEDBACK PAGE -->
+    <section class="page" id="page-feedback">
+      <div class="tool-card narrow">
+        <div class="eyebrow">HELP US IMPROVE</div>
+
+        <h2>Share your feedback</h2>
+
+        <p class="muted">
+          Tell us about your experience with Kooksy AI.
+        </p>
+
+        <label for="fbName">Name</label>
+        <input
+          id="fbName"
+          maxlength="100"
+          autocomplete="name"
+          placeholder="Your name"
+        >
+
+        <label for="fbRole">Role</label>
+        <input
+          id="fbRole"
+          maxlength="100"
+          placeholder="Student, developer…"
+        >
+
+        <label for="fbState">State</label>
+        <input
+          id="fbState"
+          maxlength="100"
+          placeholder="Your state"
+        >
+
+        <label>Star rating</label>
+
+        <div
+          class="stars"
+          id="stars"
+          role="group"
+          aria-label="Choose a rating"
+        >
+          {% for n in range(1, 6) %}
+          <button
+            type="button"
+            data-star="{{ n }}"
+            aria-label="{{ n }} star{{ 's' if n != 1 else '' }}"
+          >☆</button>
+          {% endfor %}
+        </div>
+
+        <label for="fbMessage">Feedback</label>
+
+        <textarea
+          id="fbMessage"
+          rows="4"
+          maxlength="3000"
+          placeholder="What worked well? What could improve?"
+        ></textarea>
+
+        <button
+          class="primary"
+          id="submitFeedback"
+          type="button"
+        >Submit feedback</button>
+
+        <p
+          id="feedbackStatus"
+          class="status"
+          role="status"
+        ></p>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="sidebar-bottom">
+      <span>Kooksy AI</span>
+      · Keep your Groq API key on the server, never in this HTML.
+    </footer>
+
+  </main>
+</div>
+
+<!-- NOTIFICATION -->
+<div
+  id="toast"
+  class="toast"
+  role="status"
+  aria-live="polite"
+></div>
+<!-- JAVASCRIPT -->
+<script
+  src="{{ url_for('static', filename='app.js') }}"
+  defer
+></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const $ = (id) => document.getElementById(id);
+
+  /* Sidebar navigation */
+  document.querySelectorAll("[data-page]").forEach((button) => {
+    button.addEventListener("click", function () {
+      const page = this.dataset.page;
+
+      document.querySelectorAll(".page").forEach((section) => {
+        section.classList.toggle("active", section.id === "page-" + page);
+      });
+
+      document.querySelectorAll("[data-page]").forEach((item) => {
+        item.classList.toggle("active", item === this);
+      });
+
+      const titles = {
+        assistant: "AI Assistant",
+        history: "Echoes of Time",
+        goal: "Agent Goal",
+        creator: "Website Creator",
+        feedback: "Feedback"
+      };
+
+      const heading = $("pageTitle");
+      if (heading) heading.textContent = titles[page] || "Kooksy AI";
+
+      if (page === "history") window.KooksyAI?.loadHistory();
+
+      $("sidebar")?.classList.remove("sidebar-open");
+    });
+  });
+
+  /* New chat */
+  $("newChat")?.addEventListener("click", function () {
+    window.KooksyAI?.newChat();
+
+    const welcome = $("welcome");
+    if (welcome) welcome.style.display = "";
+
+    document.querySelector('[data-page="assistant"]')?.click();
+  });
+
+  /* Mobile menu */
+  $("menuBtn")?.addEventListener("click", function () {
+    $("sidebar")?.classList.toggle("sidebar-open");
+  });
+
+
+  /* Message input — FIXED */
+  const promptInput = $("prompt");
+
+  promptInput?.addEventListener("input", function () {
+    const count = $("charCount");
+    if (count) {
+      count.textContent = this.value.length + " / 1000000";
+    }
+  });
+
+
+  /* Voice input */
+  let recognition = null;
+
+  $("voiceBtn")?.addEventListener("click", function () {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert(
+        "Voice input is not supported in this browser. Try Microsoft Edge or Google Chrome."
+      );
+      return;
+    }
+
+    if (recognition) {
+      recognition.stop();
+      recognition = null;
+    }
+
+    recognition = new SpeechRecognition();
+
+    recognition.lang = $("language")?.value === "ta"
+      ? "ta-IN"
+      : $("language")?.value === "hi"
+      ? "hi-IN"
+      : $("language")?.value === "te"
+      ? "te-IN"
+      : $("language")?.value || "en-IN";
+
+    recognition.interimResults = true;
+    recognition.continuous = false;
+
+    recognition.onresult = function (event) {
+      let transcript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+
+      /* FIX: use promptInput, not browser's built-in prompt */
+      if (promptInput) {
+        promptInput.value = transcript;
+        promptInput.dispatchEvent(
+          new Event("input", { bubbles: true })
+        );
+      }
+    };
+
+    recognition.onerror = function (event) {
+      console.error("Voice recognition:", event.error);
+    };
+
+    recognition.onend = function () {
+      recognition = null;
+    };
+
+    recognition.start();
+  });
+
+  $("stopVoiceBtn")?.addEventListener("click", function () {
+    if (recognition) {
+      recognition.stop();
+      recognition = null;
+    }
+
+    window.speechSynthesis?.cancel();
+  });
+
+  /* Goal planner */
+  $("goalBtn")?.addEventListener("click", function () {
+    if (typeof window.KooksyAI?.generateGoal === "function") {
+      window.KooksyAI.generateGoal();
+    } else {
+      console.error(
+        "Agent Goal error: KooksyAI.generateGoal() is not available in app.js."
+      );
+      alert("Agent Goal could not start. Please check app.js and the browser console.");
+    }
+  });
+
+  /* Website creator */
+  $("createWebsiteBtn")?.addEventListener("click", function () {
+    window.KooksyAI?.generateWebsite();
+  });
+
+   /* Suggestions */
+  document.querySelectorAll(".suggestion").forEach((button) => {
+    button.addEventListener("click", function () {
+      if (!promptInput) return;
+
+      promptInput.value = this.textContent.trim();
+      promptInput.dispatchEvent(
+        new Event("input", { bubbles: true })
+      );
+
+      $("sendBtn")?.click();
+    });
+  }); // FIX: Suggestions forEach closing added
+
+  /* Language selection */
+  $("language")?.addEventListener("change", function () {
+    window.KooksyAI?.applyLanguage(this.value);
+  });
+ 
+  /* Logout */
+  $("logout")?.addEventListener("click", function () {
+    if (confirm("Are you sure you want to log out?")) {
+      window.location.href = "/logout";
+    }
+  });
+
+  /* Feedback star rating */
+  let selectedRating = 0;
+
+  document.querySelectorAll("[data-star]").forEach((star) => {
+    star.addEventListener("click", function () {
+      selectedRating = Number(this.dataset.star);
+
+      document.querySelectorAll("[data-star]").forEach((item) => {
+        const active = Number(item.dataset.star) <= selectedRating;
+
+        item.textContent = active ? "★" : "☆";
+
+        item.setAttribute(
+          "aria-pressed",
+          String(Number(item.dataset.star) === selectedRating)
+        );
+      });
+    });
+  });
+
+  /* Feedback submission */
+  $("submitFeedback")?.addEventListener("click", async function () {
+    const feedback = $("fbMessage")?.value.trim() || "";
+
+    if (!feedback) {
+      alert("Please enter your feedback.");
+      $("fbMessage")?.focus();
+      return;
+    }
+
+    if (!selectedRating) {
+      alert("Please choose a star rating.");
+      return;
+    }
+
+    try {
+      const sessionResponse = await fetch("/api/session", {
+        credentials: "same-origin"
+      });
+
+      const sessionData = await sessionResponse.json();
+
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-Token": sessionData.csrf_token || ""
+        },
+        body: JSON.stringify({
+          name: $("fbName")?.value.trim() || "",
+          role: $("fbRole")?.value.trim() || "",
+          state: $("fbState")?.value.trim() || "",
+          rating: selectedRating,
+          feedback: feedback,
+          language: $("language")?.value || "en"
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || result.message || "Feedback submission failed."
+        );
+      }
+
+      if ($("feedbackStatus")) {
+        $("feedbackStatus").textContent =
+          result.message || "Thank you! Your feedback was submitted.";
+      }
+
+      $("fbMessage").value = "";
+      selectedRating = 0;
+
+      document.querySelectorAll("[data-star]").forEach((star) => {
+        star.textContent = "☆";
+        star.setAttribute("aria-pressed", "false");
+      });
+
+    } catch (error) {
+      console.error("Feedback error:", error);
+      alert(error.message);
+    }
+  });
+});
+</script>
+</body>
+</html>
