@@ -1756,3 +1756,401 @@ button.loading::after {
     height: 24px;
   }
 }
+/* =========================================================
+   KOOKSY AI — WEBSITE CREATOR + AI CODING STUDIO
+   Add this section at the END of static/style.css
+   Existing styles and features are preserved.
+   ========================================================= */
+
+/* ---------- WEBSITE CREATOR ENHANCEMENTS ---------- */
+
+#page-creator .creator-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  margin-top: 22px;
+}
+
+#page-creator .creator-panel,
+#page-creator .creator-preview-panel {
+  min-width: 0;
+  padding: 20px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+#page-creator .creator-file-tabs,
+#page-creator .creator-actions,
+#page-creator .creator-hosting-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+#page-creator .creator-file-tab,
+#page-creator .creator-action,
+#page-creator .creator-hosting-option {
+  padding: 9px 12px;
+  color: var(--text-soft);
+  background: var(--panel-hover);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  transition: all var(--transition);
+}
+
+#page-creator .creator-file-tab:hover,
+#page-creator .creator-file-tab.active,
+#page-creator .creator-action:hover,
+#page-creator .creator-hosting-option:hover {
+  color: #e2d8ff;
+  background: rgba(167, 139, 250, 0.12);
+  border-color: var(--border-hover);
+}
+
+#page-creator .creator-code-editor {
+  width: 100%;
+  min-height: 300px;
+  margin-top: 14px;
+  padding: 15px;
+  color: #d9e5ff;
+  background: #090a10;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-size: 12px;
+  line-height: 1.75;
+  tab-size: 2;
+  resize: vertical;
+  white-space: pre;
+  overflow: auto;
+}
+
+#page-creator .creator-preview-frame {
+  display: block;
+  width: 100%;
+  min-height: 350px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+#page-creator .creator-deployment-guide {
+  margin-top: 20px;
+  padding: 17px;
+  color: var(--text-soft);
+  background: rgba(103, 232, 249, 0.04);
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 12px;
+}
+
+/* ---------- AI CODING STUDIO ---------- */
+
+#page-coding .coding-header {
+  width: min(100%, 1200px);
+  margin: 0 auto 22px;
+}
+
+#page-coding .coding-header h2 {
+  margin: 7px 0;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 850;
+  letter-spacing: -0.8px;
+}
+
+#page-coding .coding-workspace {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1400px;
+  min-width: 0;
+  margin: 0 auto;
+}
+
+#page-coding .coding-sidebar,
+#page-coding .coding-editor-panel,
+#page-coding .coding-ai-panel,
+#page-coding .coding-preview-panel {
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+#page-coding .coding-sidebar {
+  align-self: start;
+  padding: 16px;
+}
+
+#page-coding .coding-sidebar h3,
+#page-coding .coding-editor-panel h3,
+#page-coding .coding-ai-panel h3,
+#page-coding .coding-preview-panel h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+#page-coding .coding-field-label {
+  display: block;
+  margin: 15px 0 7px;
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+#page-coding .coding-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 41px;
+  padding: 10px 11px;
+  color: var(--text);
+  background: #0b0c12;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+#page-coding .coding-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+#page-coding .coding-file-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  color: var(--text-soft);
+  text-align: left;
+  overflow-wrap: anywhere;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all var(--transition);
+}
+
+#page-coding .coding-file-button:hover,
+#page-coding .coding-file-button.active {
+  color: #e2d8ff;
+  background: rgba(167, 139, 250, 0.10);
+  border-color: var(--border-hover);
+}
+
+#page-coding .coding-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+#page-coding .coding-editor-panel,
+#page-coding .coding-ai-panel,
+#page-coding .coding-preview-panel {
+  padding: 18px;
+}
+
+#page-coding .coding-panel-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+#page-coding .coding-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+#page-coding .coding-toolbar .ghost,
+#page-coding .coding-toolbar .primary {
+  min-height: 36px;
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+#page-coding .coding-editor {
+  display: block;
+  width: 100%;
+  min-height: 360px;
+  padding: 16px;
+  color: #e2e8f0;
+  background: #08090e;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  border-radius: 12px;
+  font-family: "Cascadia Code", "Consolas", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.8;
+  tab-size: 4;
+  resize: vertical;
+  white-space: pre;
+  overflow: auto;
+}
+
+#page-coding .coding-editor:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.08);
+}
+
+#page-coding .coding-editor-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+#page-coding .coding-ai-prompt {
+  display: block;
+  width: 100%;
+  min-height: 110px;
+  padding: 13px;
+  color: var(--text);
+  background: #0b0c12;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  resize: vertical;
+}
+
+#page-coding .coding-ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+#page-coding .coding-ai-result {
+  min-height: 45px;
+  margin-top: 15px;
+  padding: 15px;
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+  background: #0b0c12;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+#page-coding .coding-ai-result:empty {
+  display: none;
+}
+
+#page-coding .coding-ai-result pre {
+  max-width: 100%;
+  padding: 13px;
+  overflow: auto;
+  background: #07080d;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+#page-coding .coding-preview-frame {
+  display: block;
+  width: 100%;
+  min-height: 300px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+#page-coding .coding-status {
+  min-height: 20px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+#page-coding .coding-status.success {
+  color: var(--success);
+}
+
+#page-coding .coding-status.error {
+  color: var(--danger);
+}
+
+#page-coding .coding-notice {
+  margin-top: 13px;
+  padding: 12px;
+  color: var(--text-soft);
+  background: rgba(251, 191, 36, 0.05);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+/* ---------- STUDIO RESPONSIVE LAYOUT ---------- */
+
+@media (max-width: 1050px) {
+  #page-coding .coding-workspace {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  #page-creator .creator-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  #page-coding .coding-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #page-coding .coding-sidebar,
+  #page-coding .coding-editor-panel,
+  #page-coding .coding-ai-panel,
+  #page-coding .coding-preview-panel {
+    padding: 14px;
+  }
+
+  #page-coding .coding-file-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #page-coding .coding-editor {
+    min-height: 280px;
+    font-size: 12px;
+  }
+
+  #page-coding .coding-toolbar,
+  #page-coding .coding-ai-actions {
+    width: 100%;
+  }
+
+  #page-coding .coding-toolbar > button,
+  #page-coding .coding-ai-actions > button {
+    flex: 1 1 auto;
+  }
+
+  #page-coding .coding-preview-frame,
+  #page-creator .creator-preview-frame {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 420px) {
+  #page-coding .coding-file-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #page-coding .coding-panel-heading {
+    align-items: flex-start;
+  }
+
+  #page-coding .coding-editor {
+    padding: 11px;
+    font-size: 11px;
+  }
+}
