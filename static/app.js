@@ -1157,16 +1157,17 @@ if (content == null) {
       });
     }
 
-    bindClick(["newChatButton", "new-chat", "newChatBtn"], newChat);
+
+    const feedbackForm = $("feedbackForm") || $("feedback-form");
+    if (feedbackForm) {    bindClick(["newChatButton", "new-chat", "newChatBtn"], newChat);
     bindClick(["voiceButton", "voice-btn", "micButton"], startVoiceInput);
     bindClick(["stopSpeakingButton", "stop-speaking"], stopSpeaking);
- bindClick(["goalBtn", "goalButton", "generateGoalButton"], generateGoal);
-    bindClick(["websiteButton", "generateWebsiteButton"], generateWebsite);
+    bindClick(["goalBtn", "goalButton", "generateGoalButton"], generateGoal);
     bindClick(["logoutButton", "logout-btn"], logout);
     bindClick(["loadHistoryButton", "refreshHistory"], loadHistory);
 
-    const feedbackForm = $("feedbackForm") || $("feedback-form");
-    if (feedbackForm) {
+    // Website Creator + AI Coding Studio
+    bindCreatorStudioEvents();
       feedbackForm.addEventListener("submit", submitFeedback);
     }
 
@@ -1227,6 +1228,547 @@ if (content == null) {
       });
     });
   }
+
+/* ============================================================
+   17A. WEBSITE CREATOR + AI CODING STUDIO
+   Add inside the existing KooksyAI IIFE, before initialization.
+   ============================================================ */
+
+const studioState = {
+  files: {},
+  activeFile: "",
+  previewWindow: null
+};
+
+const STUDIO_API = {
+  website: "/api/website-creator",
+  coding: "/api/coding-studio",
+  saveFile: "/api/coding-studio/save",
+  zip: "/api/website-creator/export-zip"
+};
+
+function getFirstElement(ids) {
+  for (const id of ids) {
+    const element = $(id);
+    if (element) return element;
+  }
+  return null;
+}
+
+function setStudioText(ids, text) {
+  const element = getFirstElement(ids);
+  if (element) {
+    element.textContent =
+      typeof text === "string" ? text : JSON.stringify(text, null, 2);
+  }
+}
+
+function getStudioValue(ids) {
+  return String(getFirstElement(ids)?.value || "").trim();
+}
+
+function downloadStudioFile(filename, content) {
+  const blob = new Blob([String(content ?? "")], {
+    type: "text/plain;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function getWebsiteFiles(result) {
+  if (result && result.files && typeof result.files === "object") {
+    return result.files;
+  }
+
+  // Supports AI responses that return files as a JSON string.
+  if (typeof result?.response === "string") {
+    try {
+      const parsed = JSON.parse(result.response);
+      if (parsed.files && typeof parsed.files === "object") {
+        return parsed.files;
+      }
+    } catch {
+      // The backend may return ordinary text instead of structured files.
+    }
+  }
+
+  return {};
+}
+
+function showWebsiteFiles(files) {
+  studioState.files = files;
+  const list = getFirstElement([
+    "creatorFiles", "websiteFiles", "creator-files"
+  ]);
+
+  if (list) {
+    list.replaceChildren();
+
+    Object.entries(files).forEach(([filename, content]) => {
+      const row = document.createElement("div");
+      row.className = "creator-file-row";
+
+      const name = document.createElement("span");
+      name.textContent = filename;
+
+      const copyButton = document.createElement("button");
+      copyButton.type = "button";
+      copyButton.textContent = "Copy";
+      copyButton.addEventListener("click", () => copyText(content));
+
+      const downloadButton = document.createElement("button");
+      downloadButton.type = "button";
+      downloadButton.textContent = "Download";
+      downloadButton.addEventListener("click", () => {
+        downloadStudioFile(filename, content);
+      });
+
+      row.append(name, copyButton, downloadButton);
+      list.appendChild(row);
+    });
+  }
+
+  const select = getFirstElement([
+    "creatorFileSelect", "websiteFileSelect"
+  ]);
+
+  if (select) {
+    select.replaceChildren();
+
+    Object.keys(files).forEach((filename) => {
+      const option = document.createElement("option");
+      option.value = filename;
+      option.textContent = filename;
+      select.appendChild(option);
+    });
+  }
+}
+
+function buildWebsitePreview(files) {
+  const html = files["index.html"] || files["index.htm"] || "";
+  const css = files["style.css"] || files["styles.css"] || "";
+  const js = files["script.js"] || files["app.js"] || "";
+
+  // Keep generated HTML inside a sandboxed iframe.
+  // External resources and scripts should be reviewed before use.
+  const iframe = getFirstElement([
+    "creatorPreview", "websitePreview", "creator-preview"
+  ]);
+
+  if (iframe && iframe.tagName === "IFRAME") {
+    const escapedCSS = css.replace(/<\/style/gi, "<\\/style");
+    const escapedJS = js.replace(/<\/script/gi, "<\\/script");
+
+    let preview = html;
+
+    if (/<\/head>/i.test(preview)) {
+      preview = preview.replace(
+        /<\/head>/i,
+        `<style>${escapedCSS}</style></head>`
+      );
+    } else {
+      preview = `<style>${escapedCSS}</style>${preview}`;
+    }
+
+    if (/<\/body>/i.test(preview)) {
+      preview = preview.replace(
+        /<\/body>/i,
+        `<script>${escapedJS}<\/script></body>`
+      );
+    } else {
+      preview += `<script>${escapedJS}<\/script>`;
+    }
+
+    iframe.setAttribute("sandbox", "allow-scripts");
+    iframe.srcdoc = preview;
+  }
+}
+
+async function generateWebsite() {
+  const idea = getStudioValue([
+    "websiteIdea", "website-idea", "ideaInput", "creatorInput"
+  ]);
+
+  if (!idea) {
+    notify(getText("emptyIdea"), "warning");
+    return;
+  }
+
+  setBusy(true);
+
+  try {
+    const result = await postJSON(API.creator, {
+      idea,
+      prompt: idea,
+      language: state.language,
+      output_format: "files",
+      required_files: ["index.html", "style.css", "script.js"],
+      responsive: true
+    });
+
+    const files = getWebsiteFiles(result);
+
+    if (Object.keys(files).length) {
+      showWebsiteFiles(files);
+      buildWebsitePreview(files);
+
+      setStudioText(
+        ["creatorExplanation", "websiteExplanation"],
+        result.explanation || result.message || "Website files generated."
+      );
+      setStudioText(
+        ["creatorDeployment", "websiteDeployment"],
+        result.deployment_guide || result.setup_instructions || ""
+      );
+      setStudioText(
+        ["creatorHosting", "websiteHosting"],
+        result.hosting_suggestions || result.hosting || ""
+      );
+
+      notify("Website files generated.", "success");
+    } else {
+      const output = getFirstElement([
+        "websiteOutput", "website-output", "creatorOutput"
+      ]);
+
+      if (output) {
+        output.textContent = result.response ||
+          result.result ||
+          result.output ||
+          result.message ||
+          "The server did not return structured website files.";
+      }
+
+      notify(
+        "AI response received, but separate HTML/CSS/JS files were not returned. Check the backend response format.",
+        "warning"
+      );
+    }
+  } catch (error) {
+    console.error("Website Creator failed:", error);
+    notify(`${getText("creatorFailed")} ${error.message}`, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
+function openWebsitePreviewInNewTab() {
+  const files = studioState.files;
+
+  if (!Object.keys(files).length) {
+    notify("Generate a website first.", "warning");
+    return;
+  }
+
+  // Open a blank page synchronously to reduce popup-blocker issues.
+  const previewWindow = window.open("about:blank", "_blank");
+
+  if (!previewWindow) {
+    notify("Allow pop-ups to open the preview.", "warning");
+    return;
+  }
+
+  const html = files["index.html"] || "";
+  const css = files["style.css"] || files["styles.css"] || "";
+  const js = files["script.js"] || files["app.js"] || "";
+
+  const previewHTML = html
+    .replace(/<\/head>/i, `<style>${css.replace(/<\/style/gi, "<\\/style")}</style></head>`)
+    .replace(/<\/body>/i, `<script>${js.replace(/<\/script/gi, "<\\/script")}<\/script></body>`);
+
+  previewWindow.document.open();
+  previewWindow.document.write(previewHTML);
+  previewWindow.document.close();
+  studioState.previewWindow = previewWindow;
+}
+
+async function exportWebsiteZip() {
+  if (!Object.keys(studioState.files).length) {
+    notify("Generate a website before exporting ZIP.", "warning");
+    return;
+  }
+
+  try {
+    const result = await apiRequest(STUDIO_API.zip, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        files: studioState.files,
+        language: state.language
+      })
+    });
+
+    if (result.download_url) {
+      window.open(result.download_url, "_blank", "noopener");
+    } else if (result.zip_base64) {
+      const binary = atob(result.zip_base64);
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      const blob = new Blob([bytes], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "kooksy-website.zip";
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } else {
+      throw new Error("ZIP endpoint did not return a download URL or ZIP data.");
+    }
+  } catch (error) {
+    console.error("ZIP export failed:", error);
+    notify(`ZIP export failed: ${error.message}`, "error");
+  }
+}
+
+/* ---------------- AI CODING STUDIO ---------------- */
+
+function selectCodingFile(filename, content) {
+  studioState.activeFile = filename;
+
+  const editor = getFirstElement([
+    "codingEditor", "coding-editor", "codeEditor"
+  ]);
+
+  if (editor) editor.value = String(content ?? "");
+
+  setStudioText(["codingActiveFilename", "coding-active-filename"], filename);
+}
+
+function renderCodingFiles(files) {
+  const list = getFirstElement([
+    "codingFileList", "coding-file-list", "projectFileList"
+  ]);
+
+  if (!list) return;
+
+  list.replaceChildren();
+
+  Object.entries(files || {}).forEach(([filename, content]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "coding-file-button";
+    button.textContent = filename;
+    button.addEventListener("click", () => {
+      selectCodingFile(filename, content);
+    });
+    list.appendChild(button);
+  });
+}
+
+async function runCodingAction(action) {
+  const code = getStudioValue([
+    "codingEditor", "coding-editor", "codeEditor"
+  ]);
+  const instruction = getStudioValue([
+    "codingInstruction", "coding-instruction", "codingPrompt"
+  ]);
+  const language = getStudioValue([
+    "codingLanguage", "coding-language"
+  ]) || "python";
+
+  if (!code && action !== "open-project") {
+    notify("Enter or open code first.", "warning");
+    return;
+  }
+
+  setBusy(true);
+
+  try {
+    const result = await postJSON(STUDIO_API.coding, {
+      action,
+      code,
+      instruction,
+      language,
+      filename: studioState.activeFile,
+      project_files: studioState.files,
+      response_language: state.language
+    });
+
+    const updatedCode =
+      result.code ?? result.updated_code ?? result.output_code;
+
+    if (typeof updatedCode === "string" && updatedCode) {
+      const editor = getFirstElement([
+        "codingEditor", "coding-editor", "codeEditor"
+      ]);
+      if (editor) editor.value = updatedCode;
+    }
+
+    setStudioText(
+      ["codingAIResult", "coding-ai-result", "codingOutput"],
+      result.explanation ||
+      result.review ||
+      result.response ||
+      result.result ||
+      result.message ||
+      updatedCode ||
+      "The server returned no coding result."
+    );
+
+    if (result.files && typeof result.files === "object") {
+      studioState.files = result.files;
+      renderCodingFiles(result.files);
+    }
+
+    const preview = getFirstElement([
+      "codingPreview", "coding-preview"
+    ]);
+
+    if (preview && preview.tagName === "IFRAME" && result.preview_html) {
+      preview.setAttribute("sandbox", "allow-scripts");
+      preview.srcdoc = result.preview_html;
+    }
+
+    notify("Coding Studio request completed.", "success");
+  } catch (error) {
+    console.error("Coding Studio request failed:", error);
+    notify(`Coding Studio failed: ${error.message}`, "error");
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function saveCodingFile() {
+  const editor = getFirstElement([
+    "codingEditor", "coding-editor", "codeEditor"
+  ]);
+  const filename = studioState.activeFile;
+
+  if (!editor || !filename) {
+    notify("Open a project file before saving.", "warning");
+    return;
+  }
+
+  const content = editor.value;
+
+  try {
+    await postJSON(STUDIO_API.saveFile, {
+      filename,
+      content
+    });
+
+    studioState.files[filename] = content;
+    notify("File saved.", "success");
+  } catch (error) {
+    // Local download is a safe fallback; it does not overwrite a remote file.
+    downloadStudioFile(filename, content);
+    notify(
+      `Server save failed. Downloaded a local copy instead: ${error.message}`,
+      "warning"
+    );
+  }
+}
+
+function bindCreatorStudioEvents() {
+  bindClick(
+    ["websiteButton", "generateWebsiteButton"],
+    generateWebsite
+  );
+
+  bindClick(
+    ["websitePreviewNewTab", "creatorNewTabPreview"],
+    openWebsitePreviewInNewTab
+  );
+
+  bindClick(
+    ["websiteZipButton", "creatorZipButton"],
+    exportWebsiteZip
+  );
+
+  bindClick(
+    ["codingDebugButton", "codingFixButton"],
+    () => runCodingAction("debug")
+  );
+
+  bindClick(
+    ["codingExplainButton"],
+    () => runCodingAction("explain")
+  );
+
+  bindClick(
+    ["codingReviewButton"],
+    () => runCodingAction("review")
+  );
+
+  bindClick(
+    ["codingFeatureButton", "codingAddFeatureButton"],
+    () => runCodingAction("add-feature")
+  );
+
+  bindClick(
+    ["codingConvertButton"],
+    () => runCodingAction("convert-language")
+  );
+
+  bindClick(
+    ["codingPreviewButton"],
+    () => runCodingAction("preview")
+  );
+
+  bindClick(
+    ["codingSaveButton"],
+    saveCodingFile
+  );
+
+  const editor = getFirstElement([
+    "codingEditor", "coding-editor", "codeEditor"
+  ]);
+
+  if (editor) {
+    editor.addEventListener("input", () => {
+      if (studioState.activeFile) {
+        studioState.files[studioState.activeFile] = editor.value;
+      }
+    });
+  }
+
+  const fileInput = getFirstElement([
+    "codingProjectInput", "coding-project-input"
+  ]);
+
+  if (fileInput) {
+    fileInput.addEventListener("change", async () => {
+      const files = Array.from(fileInput.files || []);
+
+      if (!files.length) return;
+
+      const projectFiles = {};
+
+      for (const file of files) {
+        if (file.size > MAX_FILE_SIZE) {
+          notify(`${file.name} exceeds the 10 MB limit.`, "warning");
+          continue;
+        }
+
+        // Keep project paths relative and reject traversal attempts.
+        const filename = file.webkitRelativePath || file.name;
+        if (
+          filename.startsWith("/") ||
+          filename.split(/[\\/]/).includes("..")
+        ) {
+          continue;
+        }
+
+        projectFiles[filename] = await file.text();
+      }
+
+      studioState.files = projectFiles;
+      renderCodingFiles(projectFiles);
+
+      const first = Object.keys(projectFiles)[0];
+      if (first) selectCodingFile(first, projectFiles[first]);
+
+      notify("Project files opened locally.", "success");
+    });
+  }
+}
 
   /* ---------------- 18. INITIALIZATION ---------------- */
 
