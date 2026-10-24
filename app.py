@@ -97,7 +97,8 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL COLLATE NOCASE,
                 password_hash TEXT NOT NULL,
-                created_at TEXT NOT NULL
+                created_at TEXT NOT NULL,
+                recovery_code TEXT UNIQUE
             );
 
             CREATE TABLE IF NOT EXISTS conversations (
@@ -143,6 +144,59 @@ def init_db():
                     ON DELETE CASCADE
             );
         """)
+
+        # Safe migration for existing databases: add the recovery-code column
+        # only when missing, then assign stable unique codes to existing users.
+        columns = {
+            row["name"] for row in db.execute("PRAGMA table_info(users)").fetchall()
+        }
+        if "recovery_code" not in columns:
+            db.execute("ALTER TABLE users ADD COLUMN recovery_code TEXT")
+
+        rows = db.execute(
+            "SELECT id, recovery_code FROM users ORDER BY id ASC"
+        ).fetchall()
+        used_numbers = []
+        for row in rows:
+            existing = row["recovery_code"] or ""
+            match = re.fullmatch(r"j(\\d+)k", existing)
+            if match:
+                used_numbers.append(int(match.group(1)))
+
+        next_number = max(used_numbers, default=0) + 1
+        for row in rows:
+            if row["recovery_code"]:
+                continue
+            # Preserve the requested minimum 7-digit number, expanding naturally.
+            while True:
+                candidate = f"j{next_number:07d}k"
+                next_number += 1
+                if not db.execute(
+                    "SELECT 1 FROM users WHERE recovery_code = ?", (candidate,)
+                ).fetchone():
+                    break
+            db.execute(
+                "UPDATE users SET recovery_code = ? WHERE id = ?",
+                (candidate, row["id"])
+            )
+
+        db.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_recovery_code "
+            "ON users(recovery_code)"
+        )
+
+
+def next_recovery_code(db):
+    """Create the next sequential code without reusing previously issued codes."""
+    rows = db.execute(
+        "SELECT recovery_code FROM users WHERE recovery_code IS NOT NULL"
+    ).fetchall()
+    highest = 0
+    for row in rows:
+        match = re.fullmatch(r"j(\\d+)k", row["recovery_code"] or "")
+        if match:
+            highest = max(highest, int(match.group(1)))
+    return f"j{highest + 1:07d}k"
 
 
 def now_iso():
@@ -373,14 +427,17 @@ def signup():
 
         try:
             with get_db() as db:
+                # Keep code generation and account creation in one DB transaction.
+                recovery_code = next_recovery_code(db)
                 cursor = db.execute(
                     """INSERT INTO users
-                       (username, password_hash, created_at)
-                       VALUES (?, ?, ?)""",
+                       (username, password_hash, created_at, recovery_code)
+                       VALUES (?, ?, ?, ?)""",
                     (
                         username,
                         generate_password_hash(password),
                         now_iso(),
+                        recovery_code,
                     )
                 )
                 user_id = cursor.lastrowid
@@ -390,8 +447,9 @@ def signup():
             session["username"] = username
             session["language"] = "en"
             session["csrf_token"] = secrets.token_urlsafe(32)
+            session["new_recovery_code"] = recovery_code
 
-            return redirect(url_for("index"))
+            return redirect(url_for("signup_success"))
 
         except sqlite3.IntegrityError:
             return auth_page(
@@ -400,6 +458,64 @@ def signup():
             ), 409
 
     return auth_page("Create Account", "signup")
+
+
+@app.route("/signup/success", methods=["GET"])
+@login_required
+def signup_success():
+    recovery_code = session.pop("new_recovery_code", None)
+    if not recovery_code:
+        return redirect(url_for("index"))
+    return render_template(
+        "recovery_code.html",
+        recovery_code=recovery_code,
+        username=session.get("username", "")
+    )
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    message = ""
+    if request.method == "POST":
+        username = safe_text(request.form.get("username"), 30)
+        recovery_code = safe_text(request.form.get("recovery_code"), 40).lower()
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if len(new_password) < 8 or len(new_password) > 128:
+            message = "New password must be 8–128 characters long."
+        elif new_password != confirm_password:
+            message = "The new passwords do not match."
+        elif not username or not recovery_code:
+            message = "Enter your username and Kooksy Recovery Code."
+        else:
+            with get_db() as db:
+                user = db.execute(
+                    """SELECT id FROM users
+                       WHERE username = ? COLLATE NOCASE
+                         AND recovery_code = ?""",
+                    (username, recovery_code)
+                ).fetchone()
+
+                if not user:
+                    # Generic response avoids revealing whether an account exists.
+                    message = "Details could not be verified. Check them and try again."
+                else:
+                    db.execute(
+                        "UPDATE users SET password_hash = ? WHERE id = ?",
+                        (generate_password_hash(new_password), user["id"])
+                    )
+                    return render_template(
+                        "forgot_password.html",
+                        message="Password reset successfully. You can now log in.",
+                        success=True
+                    )
+
+    return render_template(
+        "forgot_password.html",
+        message=message,
+        success=False
+    )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -549,26 +665,7 @@ def chat():
     # A conversation ID is optional for a new chat.
     conversation_id = data.get("conversation_id")
     user_id = session["user_id"]
-    try:
-        with get_db() as db:
-            user_exists = db.execute(
-                "SELECT id FROM users WHERE id = ?",
-                (user_id,)
-            ).fetchone()
 
-        if user_exists is None:
-            session.clear()
-            return error_response(
-                "Your login session is no longer valid. Please log in again.",
-                401
-            )
-
-    except sqlite3.Error:
-        app.logger.exception("Could not validate chat user")
-        return error_response(
-            "Could not verify your account. Please try again.",
-            500
-        )
     try:
         with get_db() as db:
             conversation = None
