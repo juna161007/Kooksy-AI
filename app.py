@@ -549,7 +549,26 @@ def chat():
     # A conversation ID is optional for a new chat.
     conversation_id = data.get("conversation_id")
     user_id = session["user_id"]
+    try:
+        with get_db() as db:
+            user_exists = db.execute(
+                "SELECT id FROM users WHERE id = ?",
+                (user_id,)
+            ).fetchone()
 
+        if user_exists is None:
+            session.clear()
+            return error_response(
+                "Your login session is no longer valid. Please log in again.",
+                401
+            )
+
+    except sqlite3.Error:
+        app.logger.exception("Could not validate chat user")
+        return error_response(
+            "Could not verify your account. Please try again.",
+            500
+        )
     try:
         with get_db() as db:
             conversation = None
