@@ -1,13 +1,172 @@
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0c0d12">
-  <meta name="description" content="Kooksy AI — Intelligence with a Spark. A multilingual AI assistant and website idea-to-code workspace.">
+  <meta name="description" content="Kooksy AI — Intelligence with a Spark.">
   <title>Kooksy AI — Intelligence with a Spark</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <style>
+    /* New features only — existing style.css remains in use */
+    .studio-grid {
+      display: grid;
+      grid-template-columns: minmax(190px, 0.8fr) minmax(0, 2fr);
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .studio-panel, .studio-editor-panel, .creator-output-panel {
+      border: 1px solid var(--border, #30313d);
+      border-radius: 14px;
+      padding: 16px;
+      background: var(--card, #151620);
+      min-width: 0;
+    }
+
+    .studio-file-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .studio-file-button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border, #30313d);
+      border-radius: 8px;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+      overflow-wrap: anywhere;
+    }
+
+    .studio-file-button.active,
+    .studio-file-button:hover {
+      border-color: #9b7bff;
+      background: rgba(155, 123, 255, .12);
+    }
+
+    .studio-editor {
+      width: 100%;
+      min-height: 340px;
+      resize: vertical;
+      box-sizing: border-box;
+      border: 1px solid var(--border, #30313d);
+      border-radius: 10px;
+      padding: 14px;
+      background: #0c0d12;
+      color: #e9e9f2;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      line-height: 1.65;
+      tab-size: 2;
+    }
+
+    .studio-toolbar, .creator-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 9px;
+      margin: 12px 0;
+    }
+
+    .studio-toolbar button, .creator-toolbar button {
+      cursor: pointer;
+    }
+
+    .studio-input, .studio-select {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 7px 0 12px;
+    }
+
+    .studio-status {
+      min-height: 22px;
+      overflow-wrap: anywhere;
+    }
+
+    .studio-result {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      margin-top: 12px;
+    }
+
+    .studio-preview {
+      width: 100%;
+      min-height: 360px;
+      border: 1px solid var(--border, #30313d);
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    .creator-output-panel {
+      margin-top: 16px;
+    }
+
+    .creator-file-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .creator-file-tabs button {
+      padding: 8px 12px;
+      border: 1px solid var(--border, #30313d);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .creator-code {
+      width: 100%;
+      min-height: 300px;
+      box-sizing: border-box;
+      resize: vertical;
+      padding: 12px;
+      border-radius: 10px;
+      background: #0c0d12;
+      color: #ededf5;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .creator-preview {
+      width: 100%;
+      min-height: 400px;
+      background: white;
+      border: 1px solid var(--border, #30313d);
+      border-radius: 10px;
+    }
+
+    .studio-help {
+      font-size: 13px;
+      opacity: .8;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 760px) {
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .studio-editor {
+        min-height: 260px;
+      }
+
+      .studio-toolbar button,
+      .creator-toolbar button {
+        max-width: 100%;
+      }
+    }
+  </style>
 </head>
+
 <body>
 <div class="app-shell">
 
@@ -21,9 +180,7 @@
       </div>
     </div>
 
-    <button class="primary full" id="newChat" type="button">
-      ＋ New Chat
-    </button>
+    <button class="primary full" id="newChat" type="button">＋ New Chat</button>
 
     <nav aria-label="Workspace">
       <button class="nav-item active" data-page="assistant" type="button">
@@ -46,6 +203,12 @@
         <span data-i18n="creator">Website Creator</span>
       </button>
 
+      <!-- NEW: CODING STUDIO -->
+      <button class="nav-item" data-page="coding" type="button">
+        <span aria-hidden="true">⌘</span>
+        <span>Kookie's Coding Studio</span>
+      </button>
+
       <button class="nav-item" data-page="feedback" type="button">
         <span aria-hidden="true">☆</span>
         <span data-i18n="feedback">Feedback</span>
@@ -59,17 +222,13 @@
     </div>
   </aside>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <main class="main">
 
     <!-- TOP BAR -->
     <header class="topbar">
-      <button
-        class="icon-btn mobile-only"
-        id="menuBtn"
-        type="button"
-        aria-label="Open navigation"
-      >☰</button>
+      <button class="icon-btn mobile-only" id="menuBtn"
+        type="button" aria-label="Open navigation">☰</button>
 
       <div>
         <strong id="pageTitle">AI Assistant</strong>
@@ -90,116 +249,59 @@
           <option value="developer">Developer Mode</option>
         </select>
 
-        <span
-          class="user-pill"
-          id="userPill"
-          title="Signed-in username"
-        >{{ username }}</span>
+        <span class="user-pill" id="userPill"
+          title="Signed-in username">{{ username }}</span>
 
-        <button class="ghost" id="logout" type="button">
-          Log out
-        </button>
+        <button class="ghost" id="logout" type="button">Log out</button>
       </div>
     </header>
 
-    <!-- AI ASSISTANT PAGE -->
+    <!-- AI ASSISTANT -->
     <section class="page active" id="page-assistant">
-
       <div class="welcome" id="welcome">
         <div class="hero-icon" aria-hidden="true">✦</div>
-
         <p class="eyebrow">KOOKSY AI · YOUR AI WORKSPACE</p>
-
         <h1>Intelligence with a Spark.</h1>
-
         <p>
           Ask questions, continue a conversation, analyse a file,
           or turn your idea into a website project.
         </p>
 
         <div class="suggestions">
-          <button class="suggestion" type="button">
-            Explain AI in simple words
-          </button>
-
-          <button class="suggestion" type="button">
-            Help me plan a project
-          </button>
-
-          <button class="suggestion" type="button">
-            Write and explain Python code
-          </button>
+          <button class="suggestion" type="button">Explain AI in simple words</button>
+          <button class="suggestion" type="button">Help me plan a project</button>
+          <button class="suggestion" type="button">Write and explain Python code</button>
         </div>
       </div>
 
-      <!-- CHAT MESSAGES -->
-      <div
-        id="chatMessages"
-        class="chat-messages"
-        aria-live="polite"
-        aria-relevant="additions"
-      ></div>
+      <div id="chatMessages" class="chat-messages"
+        aria-live="polite" aria-relevant="additions"></div>
 
-      <!-- MESSAGE COMPOSER -->
       <div class="composer-wrap">
-
         <div class="upload-row">
           <label class="file-label">
             ＋ Analyse a file
-            <input
-              id="fileInput"
-              type="file"
-              accept=".csv,.txt,.md,.pdf,.docx,.json,.py,.html,.css,.js,.log"
-            >
+            <input id="fileInput" type="file"
+              accept=".csv,.txt,.md,.pdf,.docx,.json,.py,.html,.css,.js,.log">
           </label>
-
           <span class="muted small">
             CSV, TXT, MD, PDF, DOCX, JSON, PY, HTML, CSS, JS, LOG · Max 10 MB
           </span>
-
-          <span
-            id="fileStatus"
-            class="small"
-            role="status"
-          ></span>
+          <span id="fileStatus" class="small" role="status"></span>
         </div>
 
         <div class="composer">
-          <textarea
-            id="prompt"
-            maxlength="1000000"
-            rows="2"
-            placeholder="Message Kooksy AI…"
-            aria-label="Message Kooksy AI"
-          ></textarea>
+          <textarea id="prompt" maxlength="1000000" rows="2"
+            placeholder="Message Kooksy AI…" aria-label="Message Kooksy AI"></textarea>
 
           <div class="composer-tools">
-            <span class="muted small" id="charCount">
-              0 / 1000000
-            </span>
-
+            <span class="muted small" id="charCount">0 / 1000000</span>
             <div>
-              <button
-                class="icon-btn"
-                id="voiceBtn"
-                type="button"
-                title="Start voice input"
-                aria-label="Start voice input"
-              >🎙</button>
-
-              <button
-                class="icon-btn"
-                id="stopVoiceBtn"
-                type="button"
-                title="Stop listening"
-                aria-label="Stop listening"
-              >■</button>
-
-              <button
-                class="primary send-btn"
-                id="sendBtn"
-                type="button"
-              >Send ↑</button>
+              <button class="icon-btn" id="voiceBtn" type="button"
+                title="Start voice input" aria-label="Start voice input">🎙</button>
+              <button class="icon-btn" id="stopVoiceBtn" type="button"
+                title="Stop listening" aria-label="Stop listening">■</button>
+              <button class="primary send-btn" id="sendBtn" type="button">Send ↑</button>
             </div>
           </div>
         </div>
@@ -211,55 +313,37 @@
       </div>
     </section>
 
-    <!-- CHAT HISTORY PAGE -->
+    <!-- CHAT HISTORY -->
     <section class="page" id="page-history">
       <div class="section-head">
         <div class="eyebrow">YOUR CONVERSATIONS</div>
-
         <h2>Echoes of Time</h2>
-
         <p class="muted">
           Open a previous conversation or delete one you no longer need.
           Only your own saved chats should be available.
         </p>
       </div>
-
       <div id="historyList" class="history-list">
         <p class="muted">Loading your conversations…</p>
       </div>
     </section>
 
-    <!-- AGENT GOAL PAGE -->
+    <!-- AGENT GOAL -->
     <section class="page" id="page-goal">
       <div class="tool-card">
         <div class="eyebrow">AGENTIC PLANNING</div>
-
         <h2>Turn a goal into a plan</h2>
-
         <p class="muted">
           Describe a real-world task. Kooksy AI will outline steps,
-          success criteria, risks, limitations, and actions that need
-          your approval.
+          success criteria, risks, limitations, and actions needing your approval.
         </p>
 
         <label for="goalInput">What do you want to achieve?</label>
+        <textarea id="goalInput" rows="5" maxlength="20000"
+          placeholder="Example: Plan a student portfolio website and explain how I can publish it…"></textarea>
 
-        <textarea
-          id="goalInput"
-          rows="5"
-          maxlength="20000"
-          placeholder="Example: Plan a student portfolio website and explain how I can publish it…"
-        ></textarea>
-
-        <button class="primary" id="goalBtn" type="button">
-          Generate plan ✦
-        </button>
-
-        <div
-          class="result prose"
-          id="goalResult"
-          aria-live="polite"
-        ></div>
+        <button class="primary" id="goalBtn" type="button">Generate plan ✦</button>
+        <div class="result prose" id="goalResult" aria-live="polite"></div>
 
         <p class="muted small">
           This feature generates a plan. It does not independently open apps,
@@ -268,156 +352,299 @@
       </div>
     </section>
 
-    <!-- WEBSITE CREATOR PAGE -->
+    <!-- WEBSITE CREATOR -->
     <section class="page" id="page-creator">
       <div class="tool-card">
-        <div class="eyebrow">IDEA → FRONTEND + BACKEND</div>
-
+        <div class="eyebrow">IDEA → WEBSITE CODE</div>
         <h2>Website Creator</h2>
 
         <p class="muted">
-          Describe your idea in your own words. Kooksy AI can generate
-          frontend and backend source files and provide deployment
-          instructions in your selected response language.
+          Describe your idea. Kooksy AI will recommend a suitable technology
+          stack and generate a website design with HTML, CSS and JavaScript
+          where appropriate, along with setup and deployment instructions.
         </p>
 
-        <label for="ideaInput">
-          Describe your website or project idea
-        </label>
-
-        <textarea
-          id="ideaInput"
-          rows="10"
-          maxlength="1000000"
-          placeholder="Example: Create a student task manager with signup, login, task creation, due dates, search, and a dashboard. Use HTML, CSS, JavaScript, Python Flask, and SQLite…"
-        ></textarea>
+        <label for="ideaInput">Describe your website or project idea</label>
+        <textarea id="ideaInput" rows="8" maxlength="1000000"
+          placeholder="Example: Create a responsive student portfolio with a dark purple theme, home page, projects, skills and contact form. Recommend the suitable technologies."></textarea>
 
         <div class="creator-bottom">
-          <span class="muted small" id="ideaCount">
-            0 / 1000000
-          </span>
-
-          <button
-            class="primary"
-            id="createWebsiteBtn"
-            type="button"
-          >Generate project ✦</button>
+          <span class="muted small" id="ideaCount">0 / 1000000</span>
+          <button class="primary" id="createWebsiteBtn" type="button">
+            Generate project ✦
+          </button>
         </div>
 
         <p class="muted small">
-          The generated project can include frontend and backend code
-          plus deployment guidance. Kooksy AI does not deploy it directly.
-          Review and test generated code before production use.
+          After generation, inspect the code, preview it and download your files.
+          Generated projects should be tested before production use.
         </p>
 
-        <div
-          id="creatorResult"
-          class="result"
-          aria-live="polite"
-        ></div>
+        <div id="creatorResult" class="result" aria-live="polite"></div>
+
+        <!-- NEW: Website Creator output controls.
+             app.js should populate the generated file data into these controls. -->
+        <div id="creatorWorkspace" class="creator-output-panel" hidden>
+          <h3>Your generated website</h3>
+          <p id="creatorTechStack" class="muted"></p>
+          <p id="creatorExplanation" class="prose"></p>
+
+          <label for="creatorFileSelect">Select generated file</label>
+          <select id="creatorFileSelect" class="studio-select">
+            <option value="index.html">index.html</option>
+          </select>
+
+          <div class="creator-toolbar">
+            <button class="ghost" id="creatorCopyBtn" type="button">Copy file</button>
+            <button class="ghost" id="creatorDownloadFileBtn" type="button">Download file</button>
+            <button class="ghost" id="creatorDownloadZipBtn" type="button">Download ZIP</button>
+            <button class="primary" id="creatorPreviewBtn" type="button">Refresh preview</button>
+            <button class="ghost" id="creatorOpenPreviewBtn" type="button">Open in new tab</button>
+          </div>
+
+          <label for="creatorCodeEditor">Code editor</label>
+          <textarea id="creatorCodeEditor" class="creator-code"
+            spellcheck="false" aria-label="Generated website code"></textarea>
+
+          <h3>Live preview</h3>
+          <iframe id="creatorPreview" class="creator-preview"
+            title="Generated website preview"
+            sandbox="allow-forms allow-modals allow-scripts"
+            referrerpolicy="no-referrer"></iframe>
+
+          <h3>Deployment guide</h3>
+          <div id="creatorDeploymentGuide" class="prose"></div>
+        </div>
       </div>
     </section>
 
-    <!-- FEEDBACK PAGE -->
+    <!-- NEW: KOOKIE'S AI CODING STUDIO -->
+    <section class="page" id="page-coding">
+      <div class="tool-card">
+        <div class="eyebrow">KOOKIE'S AI CODING STUDIO</div>
+        <h2>Code, understand, debug and improve</h2>
+        <p class="muted">
+          Work with project files inside Kooksy AI. Open a file, edit its code,
+          ask Kookie to explain or fix it, review your code, add features, or
+          convert it to another programming language.
+        </p>
+
+        <div class="studio-grid">
+          <!-- PROJECT FILES -->
+          <div class="studio-panel">
+            <h3>Project files</h3>
+            <p class="studio-help">
+              Upload a project ZIP to work with its files in this session,
+              or open a single code file. File upload alone does not connect
+              or commit changes to GitHub.
+            </p>
+
+            <label for="studioProjectZip">Open project ZIP</label>
+            <input id="studioProjectZip" class="studio-input" type="file"
+              accept=".zip">
+
+            <label for="studioSingleFile">Open a code file</label>
+            <input id="studioSingleFile" class="studio-input" type="file"
+              accept=".py,.html,.css,.js,.ts,.jsx,.tsx,.java,.c,.cpp,.cs,.php,.json,.sql,.md,.txt">
+
+            <label for="studioNewFileName">Create a new file</label>
+            <input id="studioNewFileName" class="studio-input"
+              type="text" maxlength="180" placeholder="example.py">
+
+            <button class="ghost" id="studioCreateFileBtn" type="button">
+              ＋ Create file
+            </button>
+
+            <div id="studioFileList" class="studio-file-list">
+              <p class="muted small">Open a file or upload a project ZIP.</p>
+            </div>
+          </div>
+
+          <!-- CODE EDITOR -->
+          <div class="studio-editor-panel">
+            <label for="studioCurrentFile"><strong>Current file</strong></label>
+            <input id="studioCurrentFile" class="studio-input"
+              type="text" readonly placeholder="No file selected">
+
+            <div class="studio-toolbar">
+              <button class="primary" id="studioSaveFileBtn" type="button">
+                Save file
+              </button>
+              <button class="ghost" id="studioDownloadFileBtn" type="button">
+                Download file
+              </button>
+              <button class="ghost" id="studioPreviewBtn" type="button">
+                Preview HTML
+              </button>
+            </div>
+
+            <label for="studioCodeEditor">Edit your code</label>
+            <textarea id="studioCodeEditor" class="studio-editor"
+              spellcheck="false" autocomplete="off"
+              placeholder="Open a project file to begin editing…"></textarea>
+
+            <p id="studioStatus" class="studio-status muted small"
+              role="status" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <!-- AI CODING ACTIONS -->
+        <div class="studio-panel" style="margin-top:16px">
+          <h3>Ask Kookie to work on your code</h3>
+
+          <label for="studioAction">Choose an AI coding action</label>
+          <select id="studioAction" class="studio-select">
+            <option value="debug">Debug / Fix errors</option>
+            <option value="explain">Explain this code</option>
+            <option value="review">Review code and suggest improvements</option>
+            <option value="feature">Add a feature to this code</option>
+            <option value="convert">Convert to another programming language</option>
+            <option value="generate">Generate code from my instructions</option>
+          </select>
+
+          <label for="studioTargetLanguage">Target language (for conversion)</label>
+          <select id="studioTargetLanguage" class="studio-select">
+            <option value="Python">Python</option>
+            <option value="Java">Java</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="C">C</option>
+            <option value="C++">C++</option>
+            <option value="C#">C#</option>
+            <option value="HTML and CSS">HTML and CSS</option>
+            <option value="PHP">PHP</option>
+            <option value="SQL">SQL</option>
+          </select>
+
+          <label for="studioInstruction">Instructions for Kookie</label>
+          <textarea id="studioInstruction" rows="4" maxlength="30000"
+            placeholder="Example: Fix the login validation bug without changing the existing UI. Explain the changes in my selected language."></textarea>
+
+          <div class="studio-toolbar">
+            <button class="primary" id="studioRunAiBtn" type="button">
+              Ask Kookie ✦
+            </button>
+            <button class="ghost" id="studioApplyAiBtn" type="button" disabled>
+              Apply generated code
+            </button>
+            <button class="ghost" id="studioDiscardAiBtn" type="button" disabled>
+              Discard suggestion
+            </button>
+          </div>
+
+          <div id="studioAiResult" class="studio-result prose"
+            aria-live="polite"></div>
+
+          <p class="studio-help">
+            Review AI-generated code before applying it. Saving here changes
+            the current in-session file or downloaded copy; it does not
+            automatically change your live website or push to GitHub.
+          </p>
+        </div>
+
+        <!-- HTML PREVIEW -->
+        <div class="studio-panel" style="margin-top:16px">
+          <h3>HTML preview</h3>
+          <p class="studio-help">
+            Use Preview HTML to render the current HTML file in this panel.
+            Preview is isolated from the main Kooksy interface.
+          </p>
+          <iframe id="studioPreviewFrame" class="studio-preview"
+            title="Coding Studio HTML preview"
+            sandbox="allow-forms allow-modals allow-scripts"
+            referrerpolicy="no-referrer"></iframe>
+        </div>
+
+        <!-- OPTIONAL GITHUB CONNECTION AREA -->
+        <div class="studio-panel" style="margin-top:16px">
+          <h3>GitHub project connection</h3>
+          <p class="studio-help">
+            Directly opening and committing files to a GitHub repository
+            requires secure server-side GitHub API integration. Do not paste
+            a GitHub access token into this page or into your source code.
+          </p>
+
+          <label for="studioGithubRepo">Repository URL</label>
+          <input id="studioGithubRepo" class="studio-input" type="url"
+            placeholder="https://github.com/owner/repository">
+
+          <label for="studioGithubBranch">Branch</label>
+          <input id="studioGithubBranch" class="studio-input" type="text"
+            maxlength="200" value="main">
+
+          <label for="studioGithubPath">File path in repository</label>
+          <input id="studioGithubPath" class="studio-input" type="text"
+            maxlength="500" placeholder="src/app.py">
+
+          <div class="studio-toolbar">
+            <button class="ghost" id="studioGithubOpenBtn" type="button">
+              Open GitHub file
+            </button>
+            <button class="ghost" id="studioGithubSaveBtn" type="button">
+              Commit file to GitHub
+            </button>
+          </div>
+
+          <p class="studio-help">
+            These GitHub buttons need matching authenticated backend routes
+            before they can operate. No GitHub changes are made by this HTML
+            alone.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEEDBACK -->
     <section class="page" id="page-feedback">
       <div class="tool-card narrow">
         <div class="eyebrow">HELP US IMPROVE</div>
-
         <h2>Share your feedback</h2>
-
-        <p class="muted">
-          Tell us about your experience with Kooksy AI.
-        </p>
+        <p class="muted">Tell us about your experience with Kooksy AI.</p>
 
         <label for="fbName">Name</label>
-        <input
-          id="fbName"
-          maxlength="100"
-          autocomplete="name"
-          placeholder="Your name"
-        >
+        <input id="fbName" maxlength="100" autocomplete="name" placeholder="Your name">
 
         <label for="fbRole">Role</label>
-        <input
-          id="fbRole"
-          maxlength="100"
-          placeholder="Student, developer…"
-        >
+        <input id="fbRole" maxlength="100" placeholder="Student, developer…">
 
         <label for="fbState">State</label>
-        <input
-          id="fbState"
-          maxlength="100"
-          placeholder="Your state"
-        >
+        <input id="fbState" maxlength="100" placeholder="Your state">
 
         <label>Star rating</label>
-
-        <div
-          class="stars"
-          id="stars"
-          role="group"
-          aria-label="Choose a rating"
-        >
+        <div class="stars" id="stars" role="group" aria-label="Choose a rating">
           {% for n in range(1, 6) %}
-          <button
-            type="button"
-            data-star="{{ n }}"
-            aria-label="{{ n }} star{{ 's' if n != 1 else '' }}"
-          >☆</button>
+          <button type="button" data-star="{{ n }}"
+            aria-label="{{ n }} star{{ 's' if n != 1 else '' }}">☆</button>
           {% endfor %}
         </div>
 
         <label for="fbMessage">Feedback</label>
+        <textarea id="fbMessage" rows="4" maxlength="3000"
+          placeholder="What worked well? What could improve?"></textarea>
 
-        <textarea
-          id="fbMessage"
-          rows="4"
-          maxlength="3000"
-          placeholder="What worked well? What could improve?"
-        ></textarea>
-
-        <button
-          class="primary"
-          id="submitFeedback"
-          type="button"
-        >Submit feedback</button>
-
-        <p
-          id="feedbackStatus"
-          class="status"
-          role="status"
-        ></p>
+        <button class="primary" id="submitFeedback" type="button">
+          Submit feedback
+        </button>
+        <p id="feedbackStatus" class="status" role="status"></p>
       </div>
     </section>
 
-    <!-- FOOTER -->
     <footer class="sidebar-bottom">
       <span>Kooksy AI</span>
       · Keep your Groq API key on the server, never in this HTML.
     </footer>
-
   </main>
 </div>
 
-<!-- NOTIFICATION -->
-<div
-  id="toast"
-  class="toast"
-  role="status"
-  aria-live="polite"
-></div>
-<!-- JAVASCRIPT -->
-<script
-  src="{{ url_for('static', filename='app.js') }}"
-  defer
-></script>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
   const $ = (id) => document.getElementById(id);
 
-  /* Sidebar navigation */
+  /* Sidebar navigation: preserve the existing pages and add Coding Studio */
   document.querySelectorAll("[data-page]").forEach((button) => {
     button.addEventListener("click", function () {
       const page = this.dataset.page;
@@ -435,44 +662,36 @@ document.addEventListener("DOMContentLoaded", function () {
         history: "Echoes of Time",
         goal: "Agent Goal",
         creator: "Website Creator",
+        coding: "Kookie's AI Coding Studio",
         feedback: "Feedback"
       };
 
-      const heading = $("pageTitle");
-      if (heading) heading.textContent = titles[page] || "Kooksy AI";
+      if ($("pageTitle")) {
+        $("pageTitle").textContent = titles[page] || "Kooksy AI";
+      }
 
       if (page === "history") window.KooksyAI?.loadHistory();
-
       $("sidebar")?.classList.remove("sidebar-open");
     });
   });
 
-  /* New chat */
   $("newChat")?.addEventListener("click", function () {
     window.KooksyAI?.newChat();
-
-    const welcome = $("welcome");
-    if (welcome) welcome.style.display = "";
-
+    if ($("welcome")) $("welcome").style.display = "";
     document.querySelector('[data-page="assistant"]')?.click();
   });
 
-  /* Mobile menu */
   $("menuBtn")?.addEventListener("click", function () {
     $("sidebar")?.classList.toggle("sidebar-open");
   });
 
-
-  /* Message input — FIXED */
   const promptInput = $("prompt");
 
   promptInput?.addEventListener("input", function () {
-    const count = $("charCount");
-    if (count) {
-      count.textContent = this.value.length + " / 1000000";
+    if ($("charCount")) {
+      $("charCount").textContent = this.value.length + " / 1000000";
     }
   });
-
 
   /* Voice input */
   let recognition = null;
@@ -482,9 +701,7 @@ document.addEventListener("DOMContentLoaded", function () {
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert(
-        "Voice input is not supported in this browser. Try Microsoft Edge or Google Chrome."
-      );
+      alert("Voice input is not supported. Try Microsoft Edge or Google Chrome.");
       return;
     }
 
@@ -494,42 +711,32 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     recognition = new SpeechRecognition();
+    const lang = $("language")?.value || "en";
 
-    recognition.lang = $("language")?.value === "ta"
-      ? "ta-IN"
-      : $("language")?.value === "hi"
-      ? "hi-IN"
-      : $("language")?.value === "te"
-      ? "te-IN"
-      : $("language")?.value || "en-IN";
+    const voiceLanguages = {
+      en: "en-IN", "zh-CN": "zh-CN", hi: "hi-IN", es: "es-ES",
+      ar: "ar-SA", fr: "fr-FR", bn: "bn-IN", pt: "pt-BR",
+      ru: "ru-RU", ur: "ur-PK", ja: "ja-JP", de: "de-DE",
+      ta: "ta-IN", te: "te-IN", ko: "ko-KR"
+    };
 
+    recognition.lang = voiceLanguages[lang] || lang;
     recognition.interimResults = true;
     recognition.continuous = false;
 
     recognition.onresult = function (event) {
       let transcript = "";
-
       for (let i = event.resultIndex; i < event.results.length; i++) {
         transcript += event.results[i][0].transcript;
       }
-
-      /* FIX: use promptInput, not browser's built-in prompt */
       if (promptInput) {
         promptInput.value = transcript;
-        promptInput.dispatchEvent(
-          new Event("input", { bubbles: true })
-        );
+        promptInput.dispatchEvent(new Event("input", { bubbles: true }));
       }
     };
 
-    recognition.onerror = function (event) {
-      console.error("Voice recognition:", event.error);
-    };
-
-    recognition.onend = function () {
-      recognition = null;
-    };
-
+    recognition.onerror = (event) => console.error("Voice recognition:", event.error);
+    recognition.onend = () => { recognition = null; };
     recognition.start();
   });
 
@@ -538,47 +745,47 @@ document.addEventListener("DOMContentLoaded", function () {
       recognition.stop();
       recognition = null;
     }
-
     window.speechSynthesis?.cancel();
   });
 
-  /* Goal planner */
+  /* Agent Goal */
   $("goalBtn")?.addEventListener("click", function () {
     if (typeof window.KooksyAI?.generateGoal === "function") {
       window.KooksyAI.generateGoal();
     } else {
-      console.error(
-        "Agent Goal error: KooksyAI.generateGoal() is not available in app.js."
-      );
-      alert("Agent Goal could not start. Please check app.js and the browser console.");
+      alert("Agent Goal is unavailable. Check static/app.js.");
     }
   });
 
-  /* Website creator */
+  /* Website Creator */
   $("createWebsiteBtn")?.addEventListener("click", function () {
-    window.KooksyAI?.generateWebsite();
+    if (typeof window.KooksyAI?.generateWebsite === "function") {
+      window.KooksyAI.generateWebsite();
+    } else {
+      alert("Website Creator is unavailable. Check static/app.js and the backend.");
+    }
   });
 
-   /* Suggestions */
+  $("ideaInput")?.addEventListener("input", function () {
+    if ($("ideaCount")) {
+      $("ideaCount").textContent = this.value.length + " / 1000000";
+    }
+  });
+
+  /* Suggestion buttons */
   document.querySelectorAll(".suggestion").forEach((button) => {
     button.addEventListener("click", function () {
       if (!promptInput) return;
-
       promptInput.value = this.textContent.trim();
-      promptInput.dispatchEvent(
-        new Event("input", { bubbles: true })
-      );
-
+      promptInput.dispatchEvent(new Event("input", { bubbles: true }));
       $("sendBtn")?.click();
     });
-  }); // FIX: Suggestions forEach closing added
+  });
 
-  /* Language selection */
   $("language")?.addEventListener("change", function () {
     window.KooksyAI?.applyLanguage(this.value);
   });
- 
-  /* Logout */
+
   $("logout")?.addEventListener("click", function () {
     if (confirm("Are you sure you want to log out?")) {
       window.location.href = "/logout";
@@ -594,9 +801,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       document.querySelectorAll("[data-star]").forEach((item) => {
         const active = Number(item.dataset.star) <= selectedRating;
-
         item.textContent = active ? "★" : "☆";
-
         item.setAttribute(
           "aria-pressed",
           String(Number(item.dataset.star) === selectedRating)
@@ -614,7 +819,6 @@ document.addEventListener("DOMContentLoaded", function () {
       $("fbMessage")?.focus();
       return;
     }
-
     if (!selectedRating) {
       alert("Please choose a star rating.");
       return;
@@ -624,7 +828,6 @@ document.addEventListener("DOMContentLoaded", function () {
       const sessionResponse = await fetch("/api/session", {
         credentials: "same-origin"
       });
-
       const sessionData = await sessionResponse.json();
 
       const response = await fetch("/api/feedback", {
@@ -641,16 +844,14 @@ document.addEventListener("DOMContentLoaded", function () {
           state: $("fbState")?.value.trim() || "",
           rating: selectedRating,
           feedback: feedback,
+          message: feedback,
           language: $("language")?.value || "en"
         })
       });
 
       const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(
-          result.error || result.message || "Feedback submission failed."
-        );
+        throw new Error(result.error || result.message || "Feedback submission failed.");
       }
 
       if ($("feedbackStatus")) {
@@ -660,17 +861,486 @@ document.addEventListener("DOMContentLoaded", function () {
 
       $("fbMessage").value = "";
       selectedRating = 0;
-
       document.querySelectorAll("[data-star]").forEach((star) => {
         star.textContent = "☆";
         star.setAttribute("aria-pressed", "false");
       });
-
     } catch (error) {
       console.error("Feedback error:", error);
       alert(error.message);
     }
   });
+
+  /* Coding Studio: session-only file workspace */
+  const studioFiles = new Map();
+  let currentStudioFile = "";
+  let pendingAiCode = "";
+
+  const setStudioStatus = (message) => {
+    if ($("studioStatus")) $("studioStatus").textContent = message;
+  };
+
+  const safeFileName = (name) => {
+    const normalized = String(name || "").replace(/\\/g, "/");
+    const parts = normalized.split("/");
+    const safeParts = parts.filter(
+      (part) => part && part !== "." && part !== ".."
+    );
+    return safeParts.join("/");
+  };
+
+  function renderStudioFiles() {
+    const list = $("studioFileList");
+    if (!list) return;
+    list.replaceChildren();
+
+    if (!studioFiles.size) {
+      const empty = document.createElement("p");
+      empty.className = "muted small";
+      empty.textContent = "No files loaded yet.";
+      list.appendChild(empty);
+      return;
+    }
+
+    for (const name of studioFiles.keys()) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className =
+        "studio-file-button" + (name === currentStudioFile ? " active" : "");
+      button.textContent = name;
+      button.addEventListener("click", () => openStudioFile(name));
+      list.appendChild(button);
+    }
+  }
+
+  function openStudioFile(name) {
+    if (!studioFiles.has(name)) return;
+    currentStudioFile = name;
+    $("studioCurrentFile").value = name;
+    $("studioCodeEditor").value = studioFiles.get(name);
+    renderStudioFiles();
+    setStudioStatus("Opened " + name + ". Changes are not saved until you click Save file.");
+  }
+
+  $("studioSingleFile")?.addEventListener("change", async function () {
+    const file = this.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("For this editor, please choose a file smaller than 2 MB.");
+      this.value = "";
+      return;
+    }
+    const name = safeFileName(file.name);
+    studioFiles.set(name, await file.text());
+    openStudioFile(name);
+    this.value = "";
+  });
+
+  $("studioCreateFileBtn")?.addEventListener("click", function () {
+    const name = safeFileName($("studioNewFileName")?.value.trim());
+    if (!name || name.includes("..") || name.startsWith("/")) {
+      alert("Enter a valid relative file name, for example src/app.py.");
+      return;
+    }
+    if (studioFiles.has(name) && !confirm("That file exists. Replace it?")) return;
+    studioFiles.set(name, "");
+    $("studioNewFileName").value = "";
+    openStudioFile(name);
+    setStudioStatus("Created " + name + " in this session.");
+  });
+
+  $("studioSaveFileBtn")?.addEventListener("click", function () {
+    if (!currentStudioFile) {
+      alert("Open or create a file first.");
+      return;
+    }
+    studioFiles.set(currentStudioFile, $("studioCodeEditor").value);
+    renderStudioFiles();
+    setStudioStatus("Saved " + currentStudioFile + " in the current browser session.");
+  });
+
+  $("studioDownloadFileBtn")?.addEventListener("click", function () {
+    if (!currentStudioFile) {
+      alert("Open a file first.");
+      return;
+    }
+    const content = $("studioCodeEditor").value;
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = currentStudioFile.split("/").pop() || "code.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  /* ZIP support uses JSZip only if it is available. */
+  $("studioProjectZip")?.addEventListener("change", async function () {
+    const file = this.files?.[0];
+    if (!file) return;
+
+    if (!window.JSZip) {
+      alert("ZIP import needs JSZip. Add the JSZip library to your app before using ZIP import.");
+      this.value = "";
+      return;
+    }
+
+    try {
+      const zip = await window.JSZip.loadAsync(file);
+      let loaded = 0;
+
+      for (const [path, entry] of Object.entries(zip.files)) {
+        if (entry.dir) continue;
+        const name = safeFileName(path);
+        if (!name || name.includes("..")) continue;
+        if (entry._data?.uncompressedSize > 2 * 1024 * 1024) continue;
+
+        const extension = name.split(".").pop().toLowerCase();
+        const allowed = [
+          "py", "html", "css", "js", "ts", "jsx", "tsx", "java",
+          "c", "cpp", "cs", "php", "json", "sql", "md", "txt"
+        ];
+        if (!allowed.includes(extension)) continue;
+
+        studioFiles.set(name, await entry.async("string"));
+        loaded++;
+      }
+
+      renderStudioFiles();
+      if (loaded) openStudioFile(studioFiles.keys().next().value);
+      setStudioStatus("Loaded " + loaded + " text files from the ZIP. This is a session-only workspace.");
+    } catch (error) {
+      console.error("ZIP import error:", error);
+      alert("Could not read this ZIP file.");
+    }
+    this.value = "";
+  });
+
+  $("studioPreviewBtn")?.addEventListener("click", function () {
+    if (!currentStudioFile) {
+      alert("Open an HTML file first.");
+      return;
+    }
+    if (!/\.html?$/i.test(currentStudioFile)) {
+      alert("Preview is currently available for HTML files.");
+      return;
+    }
+    const html = $("studioCodeEditor").value;
+    $("studioPreviewFrame").srcdoc = html;
+    setStudioStatus("Preview updated. Scripts run in an isolated iframe.");
+  });
+
+  /* AI coding calls need a matching backend endpoint in app.py. */
+  $("studioRunAiBtn")?.addEventListener("click", async function () {
+    const action = $("studioAction")?.value || "debug";
+    const instruction = $("studioInstruction")?.value.trim() || "";
+    const code = $("studioCodeEditor")?.value || "";
+
+    if (action !== "generate" && !currentStudioFile) {
+      alert("Open a code file first.");
+      return;
+    }
+    if (!instruction && action !== "convert" && action !== "explain" &&
+        action !== "review" && action !== "debug") {
+      alert("Describe what you want Kookie to do.");
+      return;
+    }
+
+    this.disabled = true;
+    $("studioApplyAiBtn").disabled = true;
+    $("studioDiscardAiBtn").disabled = true;
+    $("studioAiResult").textContent = "Kookie is working…";
+
+    try {
+      const sessionResponse = await fetch("/api/session", {
+        credentials: "same-origin"
+      });
+      const sessionData = await sessionResponse.json();
+
+      const response = await fetch("/api/coding-studio", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-Token": sessionData.csrf_token || ""
+        },
+        body: JSON.stringify({
+          action,
+          filename: currentStudioFile,
+          code,
+          instruction,
+          target_language: $("studioTargetLanguage")?.value || "Python",
+          language: $("language")?.value || "en",
+          mode: $("mode")?.value || "developer"
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || result.message || "AI coding request failed.");
+      }
+
+      const answer = result.explanation || result.result || result.message || "";
+      pendingAiCode = result.code || result.updated_code || "";
+
+      $("studioAiResult").textContent = answer;
+
+      const hasCode = typeof pendingAiCode === "string" && pendingAiCode.length > 0;
+      $("studioApplyAiBtn").disabled = !hasCode;
+      $("studioDiscardAiBtn").disabled = !hasCode;
+
+      if (hasCode) {
+        $("studioAiResult").textContent +=
+          "\n\nA code suggestion is ready. Review it, then select Apply generated code.";
+      }
+    } catch (error) {
+      console.error("Coding Studio error:", error);
+      $("studioAiResult").textContent =
+        "Kookie could not complete the request: " + error.message +
+        "\n\nThe /api/coding-studio backend route must be implemented in app.py.";
+    } finally {
+      this.disabled = false;
+    }
+  });
+
+  $("studioApplyAiBtn")?.addEventListener("click", function () {
+    if (!pendingAiCode) return;
+
+    if (currentStudioFile && !confirm(
+      "Replace the editor contents with Kookie's suggested code? Review it before saving."
+    )) return;
+
+    $("studioCodeEditor").value = pendingAiCode;
+    if (currentStudioFile) studioFiles.set(currentStudioFile, pendingAiCode);
+    pendingAiCode = "";
+    this.disabled = true;
+    $("studioDiscardAiBtn").disabled = true;
+    setStudioStatus("AI suggestion applied to the editor. Click Save file to keep it in this session.");
+  });
+
+  $("studioDiscardAiBtn")?.addEventListener("click", function () {
+    pendingAiCode = "";
+    $("studioApplyAiBtn").disabled = true;
+    this.disabled = true;
+    setStudioStatus("AI suggestion discarded.");
+  });
+
+  /* GitHub buttons deliberately require secure server routes. */
+  async function githubAction(action) {
+    const repo = $("studioGithubRepo")?.value.trim() || "";
+    const branch = $("studioGithubBranch")?.value.trim() || "main";
+    const path = $("studioGithubPath")?.value.trim() || "";
+
+    if (!repo || !path) {
+      alert("Enter the repository URL and file path.");
+      return;
+    }
+
+    if (action === "commit" &&
+        !confirm("Commit the current editor contents to the specified GitHub repository?")) {
+      return;
+    }
+
+    try {
+      const sessionResponse = await fetch("/api/session", {
+        credentials: "same-origin"
+      });
+      const sessionData = await sessionResponse.json();
+
+      const response = await fetch("/api/coding-studio/github", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-Token": sessionData.csrf_token || ""
+        },
+        body: JSON.stringify({
+          action,
+          repo_url: repo,
+          branch,
+          path,
+          code: $("studioCodeEditor")?.value || ""
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || result.message || "GitHub operation failed.");
+      }
+
+      if (action === "open") {
+        const name = safeFileName(path);
+        studioFiles.set(name, result.code || "");
+        openStudioFile(name);
+      }
+
+      setStudioStatus(result.message || "GitHub request completed.");
+    } catch (error) {
+      console.error("GitHub integration error:", error);
+      setStudioStatus(
+        "GitHub integration is not ready: " + error.message +
+        ". Add authenticated backend support before using these buttons."
+      );
+    }
+  }
+
+  $("studioGithubOpenBtn")?.addEventListener("click", () => githubAction("open"));
+  $("studioGithubSaveBtn")?.addEventListener("click", () => githubAction("commit"));
+
+  /* Website Creator file controls.
+     These expect the backend/frontend to populate a structured files object. */
+  let creatorFiles = {};
+  let currentCreatorFile = "";
+
+  function renderCreatorFile() {
+    const select = $("creatorFileSelect");
+    if (!select) return;
+
+    select.replaceChildren();
+    Object.keys(creatorFiles).forEach((name) => {
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      select.appendChild(option);
+    });
+
+    if (!Object.keys(creatorFiles).length) return;
+    if (!creatorFiles[currentCreatorFile]) currentCreatorFile = Object.keys(creatorFiles)[0];
+    select.value = currentCreatorFile;
+    $("creatorCodeEditor").value = creatorFiles[currentCreatorFile] || "";
+  }
+
+  $("creatorFileSelect")?.addEventListener("change", function () {
+    if (currentCreatorFile) {
+      creatorFiles[currentCreatorFile] = $("creatorCodeEditor").value;
+    }
+    currentCreatorFile = this.value;
+    $("creatorCodeEditor").value = creatorFiles[currentCreatorFile] || "";
+  });
+
+  $("creatorCodeEditor")?.addEventListener("input", function () {
+    if (currentCreatorFile) creatorFiles[currentCreatorFile] = this.value;
+  });
+
+  $("creatorCopyBtn")?.addEventListener("click", async function () {
+    if (!currentCreatorFile) return alert("Generate a website first.");
+    try {
+      await navigator.clipboard.writeText($("creatorCodeEditor").value);
+      alert("File code copied.");
+    } catch (_) {
+      alert("Copy failed. Select and copy the code manually.");
+    }
+  });
+
+  $("creatorDownloadFileBtn")?.addEventListener("click", function () {
+    if (!currentCreatorFile) return alert("Generate a website first.");
+    const blob = new Blob([$("creatorCodeEditor").value], {
+      type: "text/plain;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = currentCreatorFile.split("/").pop() || "website.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  $("creatorPreviewBtn")?.addEventListener("click", function () {
+    if (!Object.keys(creatorFiles).length) return alert("Generate a website first.");
+    creatorFiles[currentCreatorFile] = $("creatorCodeEditor").value;
+
+    let html = creatorFiles["index.html"] || creatorFiles[currentCreatorFile] || "";
+    const css = creatorFiles["style.css"] || creatorFiles["styles.css"] || "";
+    const js = creatorFiles["app.js"] || creatorFiles["script.js"] || "";
+
+    if (css && !/<link[^>]+stylesheet/i.test(html)) {
+      html = html.replace("</head>", "<style>" + css + "</style></head>");
+    }
+    if (js && !/<script[^>]+src=/i.test(html)) {
+      html = html.replace("</body>", "<script>" + js + "<\/script></body>");
+    }
+
+    $("creatorPreview").srcdoc = html;
+  });
+
+  $("creatorOpenPreviewBtn")?.addEventListener("click", function () {
+    if (!Object.keys(creatorFiles).length) return alert("Generate a website first.");
+    creatorFiles[currentCreatorFile] = $("creatorCodeEditor").value;
+
+    let html = creatorFiles["index.html"] || creatorFiles[currentCreatorFile] || "";
+    const css = creatorFiles["style.css"] || creatorFiles["styles.css"] || "";
+    const js = creatorFiles["app.js"] || creatorFiles["script.js"] || "";
+
+    if (css && !/<link[^>]+stylesheet/i.test(html)) {
+      html = html.replace("</head>", "<style>" + css + "</style></head>");
+    }
+    if (js && !/<script[^>]+src=/i.test(html)) {
+      html = html.replace("</body>", "<script>" + js + "<\/script></body>");
+    }
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  });
+
+  $("creatorDownloadZipBtn")?.addEventListener("click", async function () {
+    if (!Object.keys(creatorFiles).length) return alert("Generate a website first.");
+    if (!window.JSZip) {
+      alert("ZIP export needs JSZip. Add JSZip to the page before using ZIP export.");
+      return;
+    }
+
+    creatorFiles[currentCreatorFile] = $("creatorCodeEditor").value;
+    const zip = new window.JSZip();
+    Object.entries(creatorFiles).forEach(([name, code]) => zip.file(name, code));
+
+    const blob = await zip.generateAsync({ type: "blob" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "kooksy-generated-website.zip";
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  /*
+    Bridge for app.js:
+    after successful website generation, call:
+    window.KooksyCreator.setFiles(data.files, data);
+  */
+  window.KooksyCreator = {
+    setFiles(files, data = {}) {
+      if (!files || typeof files !== "object" || Array.isArray(files)) {
+        throw new Error("Website Creator expected a files object.");
+      }
+
+      creatorFiles = {};
+      for (const [name, code] of Object.entries(files)) {
+        const safeName = safeFileName(name);
+        if (safeName && !safeName.includes("..") && typeof code === "string") {
+          creatorFiles[safeName] = code;
+        }
+      }
+
+      currentCreatorFile = Object.keys(creatorFiles)[0] || "";
+      renderCreatorFile();
+
+      $("creatorWorkspace").hidden = !Object.keys(creatorFiles).length;
+      $("creatorTechStack").textContent = data.tech_stack || "";
+      $("creatorExplanation").textContent = data.explanation || "";
+      $("creatorDeploymentGuide").textContent =
+        data.deployment_guide || data.setup_instructions || "";
+
+      if (data.preview_html) {
+        $("creatorPreview").srcdoc = data.preview_html;
+      } else {
+        $("creatorPreviewBtn")?.click();
+      }
+    }
+  };
 });
 </script>
 </body>
