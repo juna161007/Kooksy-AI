@@ -1323,13 +1323,11 @@ Requirements:
         })
 
     except (RuntimeError, ValueError, json.JSONDecodeError) as exc:
-        app.logger.warning("Website Creator failed: %s", str(exc))
+        app.logger.exception("Website Creator failed")
         return error_response(
-            "Could not generate structured website files. Please try again.",
+            f"Website Creator error: {str(exc)}",
             502,
         )
-
-
 # ---------------------------------------------------------
 # WEBSITE CREATOR - ZIP EXPORT
 # The browser sends generated files; the server does not
