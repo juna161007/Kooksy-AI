@@ -120,12 +120,7 @@
             </button>
 
             <!-- Error / success messages -->
-            <p
-                id="authMessage"
-                class="status"
-                role="status"
-                aria-live="polite"
-            ></p>
+           <p id="authMessage" class="status" role="status" aria-live="polite">{{ message | default('', true) }}</p>
 
         </form>
 
