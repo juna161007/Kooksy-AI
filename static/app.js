@@ -1185,35 +1185,43 @@
     });
   }
 
+ 
   /* ---------------- 14. LANGUAGE SELECTION ---------------- */
 
   function applyTranslations() {
     const dictionary =
       translations[state.language] || translations.en;
 
-    document.documentElement.lang =
-      state.language === "zh-CN"
-        ? "zh-CN"
-        : state.language;
+    document.documentElement.lang = state.language;
 
     document.querySelectorAll("[data-i18n]").forEach((element) => {
       const key = element.dataset.i18n;
+      const value =
+        dictionary[key] !== undefined
+          ? dictionary[key]
+          : translations.en[key];
 
-      if (dictionary[key] !== undefined) {
-        element.textContent = dictionary[key];
-      } else if (translations.en[key] !== undefined) {
-        element.textContent = translations.en[key];
+      if (value !== undefined) {
+        // Preserve nested icons or other markup when present.
+        const label = element.querySelector("[data-i18n-label]");
+        if (label) {
+          label.textContent = value;
+        } else {
+          element.textContent = value;
+        }
       }
     });
 
     document.querySelectorAll("[data-i18n-placeholder]").forEach(
       (element) => {
         const key = element.dataset.i18nPlaceholder;
+        const value =
+          dictionary[key] !== undefined
+            ? dictionary[key]
+            : translations.en[key];
 
-        if (dictionary[key] !== undefined) {
-          element.placeholder = dictionary[key];
-        } else if (translations.en[key] !== undefined) {
-          element.placeholder = translations.en[key];
+        if (value !== undefined) {
+          element.placeholder = value;
         }
       }
     );
@@ -1231,10 +1239,13 @@
       $("send-button");
 
     if (sendButton) {
-      const label = sendButton.querySelector("[data-i18n]");
+      const label = sendButton.querySelector("[data-i18n-label]");
 
       if (label) {
         label.textContent =
+          dictionary.send || translations.en.send;
+      } else if (!sendButton.querySelector("[data-i18n]")) {
+        sendButton.textContent =
           dictionary.send || translations.en.send;
       }
     }
@@ -1242,10 +1253,9 @@
     document.querySelectorAll(".suggestion-btn").forEach(
       (button, index) => {
         const suggestions =
-          dictionary.suggestions ||
-          translations.en.suggestions;
+          dictionary.suggestions || translations.en.suggestions;
 
-        if (suggestions[index]) {
+        if (suggestions[index] !== undefined) {
           button.textContent = suggestions[index];
         }
       }
@@ -1258,12 +1268,20 @@
       $("languageSelector") ||
       $("language");
 
-    if (!languageSelect) return;
-
-    const storedLanguage =
-      localStorage.getItem("kooksy-language");
+    if (!languageSelect) {
+      applyTranslations();
+      return;
+    }
 
     const supportedLanguages = Object.keys(LANGUAGE_VOICES);
+
+    let storedLanguage = null;
+
+    try {
+      storedLanguage = localStorage.getItem("kooksy-language");
+    } catch (error) {
+      console.warn("Unable to read saved language:", error);
+    }
 
     if (
       storedLanguage &&
@@ -1272,14 +1290,12 @@
         (option) => option.value === storedLanguage
       )
     ) {
-      languageSelect.value = storedLanguage;
       state.language = storedLanguage;
+      languageSelect.value = storedLanguage;
     } else if (
-      Array.from(languageSelect.options || []).some(
-        (option) => option.value === state.language
-      )
+      !supportedLanguages.includes(state.language)
     ) {
-      languageSelect.value = state.language;
+      state.language = "en";
     }
 
     if (!languageSelect.dataset.kooksyLanguageBound) {
@@ -1294,22 +1310,27 @@
 
         state.language = selected;
 
-        localStorage.setItem(
-          "kooksy-language",
-          selected
-        );
+        try {
+          localStorage.setItem("kooksy-language", selected);
+        } catch (error) {
+          console.warn("Unable to save language:", error);
+        }
 
-        stopSpeaking();
+        if (typeof stopSpeaking === "function") {
+          stopSpeaking();
+        }
+
         applyTranslations();
 
-        notify(
-          `Language: ${
-            languageSelect.options[
-              languageSelect.selectedIndex
-            ]?.text || selected
-          }`,
-          "success"
-        );
+        const selectedOption =
+          languageSelect.options[languageSelect.selectedIndex];
+
+        if (typeof notify === "function") {
+          notify(
+            `Language: ${selectedOption?.text || selected}`,
+            "success"
+          );
+        }
       });
     }
 
@@ -1321,7 +1342,7 @@
   function activateSection(sectionName) {
     if (!sectionName) return;
 
-    const normalized = sectionName
+    const normalized = String(sectionName)
       .replace(/^#/, "")
       .replace(/^section-/, "");
 
@@ -1353,12 +1374,10 @@
       document.querySelectorAll(
         "[data-page], .page-section, .app-section"
       ).forEach((section) => {
-        if (section === target) {
-          section.hidden = false;
-          section.classList.add("active");
-        } else {
-          section.classList.remove("active");
-        }
+        const isTarget = section === target;
+
+        section.hidden = !isTarget;
+        section.classList.toggle("active", isTarget);
       });
 
       target.hidden = false;
@@ -1376,7 +1395,16 @@
         link.dataset.section ||
         link.getAttribute("href")?.replace(/^#/, "");
 
-      const active = acceptedIds.includes(destination);
+      const destinationNormalized = destination
+        ?.replace(/^#/, "")
+        .replace(/^section-/, "");
+
+      const destinationAliases =
+        aliases[destinationNormalized] || [destinationNormalized];
+
+      const active = destinationAliases.some(
+        (id) => acceptedIds.includes(id)
+      );
 
       link.classList.toggle("active", active);
 
@@ -1406,11 +1434,11 @@
         }
 
         event.preventDefault();
-
         activateSection(section);
       });
     });
   }
+
 
   /* ---------------- 16. LOGOUT ---------------- */
 
