@@ -385,14 +385,11 @@ def index():
         selected_language=session.get("language", "en"),
     )
 
-
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
-    if session.get("user_id"):
-        return redirect(url_for("index"))
-
     if request.method == "POST":
         username = safe_text(request.form.get("username"), 30)
+        # Existing signup code continues here
         password = request.form.get("password", "")
 
         if not username or len(username) < 3:
