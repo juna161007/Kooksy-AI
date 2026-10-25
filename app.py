@@ -329,16 +329,49 @@ def call_groq(messages, language="en", temperature=0.4):
 
     except requests.Timeout as exc:
         raise RuntimeError("The AI request timed out. Please try again.") from exc
+
+   
     except requests.HTTPError as exc:
-        # Do not return the API key or sensitive request headers to the client.
-        status = exc.response.status_code if exc.response is not None else 0
+        response = exc.response
+        status = response.status_code if response is not None else 0
+        error_code = ""
+        error_detail = ""
+
+        if response is not None:
+            try:
+                body = response.json()
+                info = body.get("error", {})
+                if isinstance(info, dict):
+                    error_code = str(info.get("code", ""))
+                    error_detail = str(info.get("message", ""))
+                elif isinstance(info, str):
+                    error_detail = info
+            except (ValueError, TypeError):
+                pass
+
+        # Log only the API error details, never request headers or API keys.
+        app.logger.error(
+            "Groq API error: status=%s code=%s detail=%s",
+            status, error_code[:100], error_detail[:300]
+        )
+
+        details = f"{error_code} {error_detail}".lower()
+
         if status == 401:
-            message = "Groq authentication failed. Check GROQ_API_KEY."
+            message = "Groq authentication failed. Check the API key in Render environment settings."
+        elif status == 429 and any(
+            word in details for word in
+            ("quota", "billing", "credits", "insufficient_quota")
+        ):
+            message = "Groq quota may be exhausted. Check Groq Console usage and limits."
         elif status == 429:
-            message = "Groq rate limit or quota reached. Please try later."
+            message = "Groq rate or token limit reached. Check Render logs and Groq Console limits."
         else:
-            message = f"Groq request failed (HTTP {status}). Please try again."
+            message = f"Groq request failed (HTTP {status}). Check Render logs."
+
         raise RuntimeError(message) from exc
+
+
     except (KeyError, IndexError, TypeError, ValueError) as exc:
         raise RuntimeError("Could not read the AI response.") from exc
     except requests.RequestException as exc:
@@ -1219,115 +1252,587 @@ Project files:
 """
 
 
-# ---------------------------------------------------------
-# WEBSITE CREATOR - REPLACE THE OLD /api/website-creator ROUTE
-# ---------------------------------------------------------
+/* =========================================
+   WEBSITE CREATOR STATE
+   ========================================= */
 
-@app.post("/api/website-creator")
-@login_required
-def website_creator():
-    data = get_json()
-    idea = safe_text(data.get("idea"), 12000)
+const websiteCreatorFiles = {
+  files: {},
+  activeFile: "index.html",
+  projectName: "",
+  description: "",
+  deployment: [],
+  hosting: []
+};
 
-    if not idea:
-        return error_response("Describe the website you want to create.")
+const WEBSITE_FILE_NAMES = [
+  "index.html",
+  "style.css",
+  "app.js"
+];
 
-    language = data.get("language", session.get("language", "en"))
-    if language not in LANGUAGES:
-        language = "en"
+/* =========================================
+   HELPER FUNCTIONS
+   ========================================= */
 
-    prompt = f"""
-You are a professional website generator for Kooksy AI.
+function websiteElement(id) {
+  return document.getElementById(id);
+}
 
-Create a complete, attractive, responsive website for this idea:
-{idea}
+function websiteStatus(message, isError = false) {
+  const status = websiteElement("creatorStatus");
 
-Return ONLY valid JSON. Do not use Markdown fences.
-Use exactly this JSON structure:
-{{
-  "project_name": "Short project name",
-  "description": "Short description",
-  "files": {{
-    "index.html": "complete HTML code",
-    "style.css": "complete CSS code",
-    "app.js": "complete JavaScript code"
-  }},
-  "deployment_instructions": [
-    "Step 1",
-    "Step 2"
-  ],
-  "hosting_suggestions": [
-    {{"name": "GitHub Pages", "reason": "Why it fits"}},
-    {{"name": "Netlify", "reason": "Why it fits"}},
-    {{"name": "Vercel", "reason": "Why it fits"}}
-  ]
-}}
+  if (!status) return;
 
-Requirements:
-- Use separate HTML, CSS and JavaScript files.
-- Link style.css and app.js correctly from index.html.
-- Build a responsive layout for mobile, tablet and desktop.
-- Use accessible HTML and keyboard-friendly controls.
-- Make buttons and interactions functional where appropriate.
-- Use only safe client-side demo behavior; never expose API keys.
-- Avoid unnecessary external dependencies.
-- The website should be ready for local preview.
-- Include clear deployment steps and hosting suggestions.
-- Do not claim the site has been deployed.
-- Write explanations in {LANGUAGES[language]}.
-- Code must remain syntactically valid.
-"""
+  status.textContent = message;
+  status.classList.toggle("creator-status-error", isError);
+  status.classList.toggle("creator-status-success", !isError);
+}
 
-    try:
-        answer = call_groq(
-            [{"role": "user", "content": prompt}],
-            language=language,
-            temperature=0.3,
-        )
-        result = studio_extract_json(answer)
+/* =========================================
+   COPY GENERATED FILE
+   ========================================= */
 
-        raw_files = result.get("files")
-        if not isinstance(raw_files, dict):
-            return error_response(
-                "The AI response did not contain website files. Please retry.",
-                502,
-            )
+async function copyWebsiteFile(filename) {
+  const content = websiteCreatorFiles.files[filename];
 
-        files = {}
-        for name in ("index.html", "style.css", "app.js"):
-            content = raw_files.get(name, "")
-            if not isinstance(content, str) or not content.strip():
-                return error_response(
-                    f"The generated website is missing {name}. Please retry.",
-                    502,
-                )
-            files[name] = content
+  if (typeof content !== "string") {
+    websiteStatus("Generate a project and select a file first.", true);
+    return;
+  }
 
-        deployment = result.get("deployment_instructions", [])
-        hosting = result.get("hosting_suggestions", [])
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(content);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = content;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
 
-        if not isinstance(deployment, list):
-            deployment = []
-        if not isinstance(hosting, list):
-            hosting = []
+      document.body.appendChild(textarea);
+      textarea.select();
 
-        return jsonify({
-            "success": True,
-            "project_name": str(result.get("project_name", "Kooksy Website")),
-            "description": str(result.get("description", "")),
-            "files": files,
-            "result": answer,
-            "deployment_instructions": deployment,
-            "hosting_suggestions": hosting,
-            "message": "Website files generated successfully.",
+      const copied = document.execCommand("copy");
+      textarea.remove();
+
+      if (!copied) {
+        throw new Error("Clipboard copy was blocked.");
+      }
+    }
+
+    websiteStatus(filename + " code copied successfully!");
+  } catch (error) {
+    console.error("Copy file:", error);
+    websiteStatus(
+      "Copy failed. Please select and copy the code manually.",
+      true
+    );
+  }
+}
+
+/* =========================================
+   DOWNLOAD INDIVIDUAL FILE
+   ========================================= */
+
+function downloadWebsiteFile(filename) {
+  const content = websiteCreatorFiles.files[filename];
+
+  if (typeof content !== "string") {
+    websiteStatus("Generate a project and select a file first.", true);
+    return;
+  }
+
+  const blob = new Blob([content], {
+    type: "text/plain;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  websiteStatus("Downloading " + filename + "...");
+}
+
+/* =========================================
+   SELECT A GENERATED FILE
+   ========================================= */
+
+function showWebsiteFile(filename) {
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      websiteCreatorFiles.files,
+      filename
+    )
+  ) {
+    return;
+  }
+
+  websiteCreatorFiles.activeFile = filename;
+  renderWebsiteCreator();
+}
+
+/* =========================================
+   RENDER GENERATED WEBSITE FILES
+   ========================================= */
+
+function renderWebsiteCreator() {
+  const output = websiteElement("creatorResult");
+
+  if (!output) return;
+
+  const files = websiteCreatorFiles.files;
+  const active = websiteCreatorFiles.activeFile;
+
+  if (!Object.keys(files).length) {
+    output.textContent = "Generate a project to view your files.";
+    return;
+  }
+
+  if (typeof files[active] !== "string") {
+    websiteCreatorFiles.activeFile =
+      WEBSITE_FILE_NAMES.find(
+        (name) => typeof files[name] === "string"
+      ) || Object.keys(files)[0];
+  }
+
+  const activeFile = websiteCreatorFiles.activeFile;
+
+  /* Project heading */
+
+  const projectHead = document.createElement("div");
+  projectHead.className = "creator-project-head";
+
+  const title = document.createElement("h3");
+  title.textContent =
+    websiteCreatorFiles.projectName || "Your Website";
+
+  const description = document.createElement("p");
+  description.className = "muted";
+  description.textContent = websiteCreatorFiles.description || "";
+
+  const projectActions = document.createElement("div");
+  projectActions.className = "creator-actions";
+
+  const zipButton = document.createElement("button");
+  zipButton.type = "button";
+  zipButton.className = "primary";
+  zipButton.textContent = "Download All (ZIP)";
+  zipButton.addEventListener("click", downloadWebsiteZip);
+
+  const previewButton = document.createElement("button");
+  previewButton.type = "button";
+  previewButton.className = "ghost";
+  previewButton.textContent = "Live Preview";
+  previewButton.addEventListener("click", previewGeneratedWebsite);
+
+  projectActions.append(zipButton, previewButton);
+  projectHead.append(title, description, projectActions);
+
+  /* File viewer */
+
+  const fileCard = document.createElement("div");
+  fileCard.className = "creator-file";
+
+  const fileHead = document.createElement("div");
+  fileHead.className = "creator-file-head";
+
+  const tabs = document.createElement("div");
+  tabs.className = "creator-file-actions";
+
+  WEBSITE_FILE_NAMES
+    .filter((name) => typeof files[name] === "string")
+    .forEach((filename) => {
+      const tab = document.createElement("button");
+
+      tab.type = "button";
+      tab.textContent = filename;
+      tab.dataset.fileTab = filename;
+      tab.className = filename === activeFile ? "active" : "";
+
+      tab.addEventListener("click", () => {
+        showWebsiteFile(filename);
+      });
+
+      tabs.appendChild(tab);
+    });
+
+  const actions = document.createElement("div");
+  actions.className = "creator-file-actions";
+
+  const copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.className = "ghost";
+  copyButton.textContent = "Copy Code";
+  copyButton.addEventListener("click", () => {
+    copyWebsiteFile(activeFile);
+  });
+
+  const downloadButton = document.createElement("button");
+  downloadButton.type = "button";
+  downloadButton.className = "ghost";
+  downloadButton.textContent = "Download File";
+  downloadButton.addEventListener("click", () => {
+    downloadWebsiteFile(activeFile);
+  });
+
+  actions.append(copyButton, downloadButton);
+  fileHead.append(tabs, actions);
+
+  const pre = document.createElement("pre");
+  const code = document.createElement("code");
+
+  code.textContent = files[activeFile] || "";
+
+  pre.appendChild(code);
+  fileCard.append(fileHead, pre);
+
+  output.replaceChildren(projectHead, fileCard);
+
+  /* Deployment instructions */
+
+  if (websiteCreatorFiles.deployment.length) {
+    const guide = document.createElement("div");
+    guide.className = "creator-guide";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Deployment Guide";
+
+    const list = document.createElement("ol");
+
+    websiteCreatorFiles.deployment.forEach((step) => {
+      const item = document.createElement("li");
+      item.textContent = String(step);
+      list.appendChild(item);
+    });
+
+    guide.append(heading, list);
+    output.appendChild(guide);
+  }
+
+  /* Hosting suggestions */
+
+  if (websiteCreatorFiles.hosting.length) {
+    const guide = document.createElement("div");
+    guide.className = "creator-guide";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Hosting Suggestions";
+
+    const list = document.createElement("ul");
+
+    websiteCreatorFiles.hosting.forEach((item) => {
+      const li = document.createElement("li");
+
+      const name =
+        item && typeof item === "object"
+          ? String(item.name || "Hosting option")
+          : String(item);
+
+      const reason =
+        item && typeof item === "object"
+          ? String(item.reason || "")
+          : "";
+
+      li.textContent = reason ? name + ": " + reason : name;
+      list.appendChild(li);
+    });
+
+    guide.append(heading, list);
+    output.appendChild(guide);
+  }
+}
+
+/* =========================================
+   GENERATE WEBSITE
+   ========================================= */
+
+async function generateWebsite() {
+  const input = websiteElement("ideaInput");
+  const button = websiteElement("createWebsiteBtn");
+
+  if (!input || !button) {
+    console.error("Website Creator HTML elements are missing.");
+    websiteStatus("Website Creator HTML elements were not found.", true);
+    return;
+  }
+
+  const idea = input.value.trim();
+
+  if (!idea) {
+    websiteStatus("Please describe your website idea.", true);
+    input.focus();
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Generating...";
+
+  websiteStatus("Kooksy AI is generating your website files...");
+
+  try {
+    const response = await apiRequest("/api/website-creator", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        idea: idea,
+        language:
+          websiteElement("language")?.value || "en"
+      })
+    });
+
+    if (
+      !response ||
+      !response.files ||
+      typeof response.files !== "object"
+    ) {
+      throw new Error(
+        "The server did not return separate website files."
+      );
+    }
+
+    for (const filename of WEBSITE_FILE_NAMES) {
+      if (
+        typeof response.files[filename] !== "string" ||
+        !response.files[filename].trim()
+      ) {
+        throw new Error("Generated file missing: " + filename);
+      }
+    }
+
+    websiteCreatorFiles.files = {};
+
+    WEBSITE_FILE_NAMES.forEach((filename) => {
+      websiteCreatorFiles.files[filename] =
+        response.files[filename];
+    });
+
+    websiteCreatorFiles.activeFile = "index.html";
+    websiteCreatorFiles.projectName =
+      response.project_name || "Kooksy Website";
+    websiteCreatorFiles.description =
+      response.description || "";
+
+    websiteCreatorFiles.deployment =
+      Array.isArray(response.deployment_instructions)
+        ? response.deployment_instructions
+        : [];
+
+    websiteCreatorFiles.hosting =
+      Array.isArray(response.hosting_suggestions)
+        ? response.hosting_suggestions
+        : [];
+
+    renderWebsiteCreator();
+    websiteStatus("Website generated successfully!");
+  } catch (error) {
+    console.error("Website Creator:", error);
+
+    websiteStatus(
+      error.message || "Website generation failed.",
+      true
+    );
+  } finally {
+    button.disabled = false;
+    button.textContent = "Generate Project ✦";
+  }
+}
+
+/* =========================================
+   DOWNLOAD COMPLETE WEBSITE AS ZIP
+   ========================================= */
+
+async function downloadWebsiteZip() {
+  if (!Object.keys(websiteCreatorFiles.files).length) {
+    websiteStatus("Generate a project first.", true);
+    return;
+  }
+
+  websiteStatus("Preparing your ZIP file...");
+
+  try {
+    /*
+      This expects /api/session to exist and return
+      a csrf_token. Adjust this if your app uses a
+      different CSRF-token mechanism.
+    */
+
+    const sessionResponse = await fetch("/api/session", {
+      credentials: "same-origin"
+    });
+
+    if (!sessionResponse.ok) {
+      throw new Error(
+        "Could not verify your session. Please refresh and try again."
+      );
+    }
+
+    const sessionData = await sessionResponse.json();
+
+    const headers = {
+      "Content-Type": "application/json"
+    };
+
+    if (sessionData.csrf_token) {
+      headers["X-CSRF-Token"] = sessionData.csrf_token;
+    }
+
+    const zipResponse = await fetch(
+      "/api/website-creator/export-zip",
+      {
+        method: "POST",
+        credentials: "same-origin",
+        headers: headers,
+        body: JSON.stringify({
+          files: websiteCreatorFiles.files
         })
+      }
+    );
 
-    except (RuntimeError, ValueError, json.JSONDecodeError) as exc:
-        app.logger.exception("Website Creator failed")
-        return error_response(
-            f"Website Creator error: {str(exc)}",
-            502,
-        )
+    if (!zipResponse.ok) {
+      let message = "Could not download ZIP.";
+
+      try {
+        const data = await zipResponse.json();
+        message = data.error || data.message || message;
+      } catch (_) {
+        // The response may not be JSON.
+      }
+
+      throw new Error(message);
+    }
+
+    const blob = await zipResponse.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "kooksy-website.zip";
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    websiteStatus("ZIP downloaded successfully!");
+  } catch (error) {
+    console.error("ZIP export:", error);
+
+    websiteStatus(
+      error.message || "ZIP download failed.",
+      true
+    );
+  }
+}
+
+/* =========================================
+   LIVE WEBSITE PREVIEW
+   ========================================= */
+
+function previewGeneratedWebsite() {
+  const files = websiteCreatorFiles.files;
+
+  if (!files["index.html"]) {
+    websiteStatus("Generate a project before previewing.", true);
+    return;
+  }
+
+  const output = websiteElement("creatorResult");
+
+  if (!output) {
+    websiteStatus("Website preview area was not found.", true);
+    return;
+  }
+
+  let frame = websiteElement("websitePreviewFrame");
+
+  if (!frame) {
+    frame = document.createElement("iframe");
+
+    frame.id = "websitePreviewFrame";
+    frame.title = "Generated website preview";
+    frame.setAttribute("sandbox", "allow-scripts");
+
+    frame.style.width = "100%";
+    frame.style.minHeight = "480px";
+    frame.style.border = "1px solid #30313e";
+    frame.style.borderRadius = "12px";
+    frame.style.marginTop = "16px";
+
+    output.appendChild(frame);
+  }
+
+  let html = files["index.html"];
+
+  const cssText = String(files["style.css"] || "")
+    .replace(/<\/style/gi, "<\\/style");
+
+  const jsText = String(files["app.js"] || "")
+    .replace(/<\/script/gi, "<\\/script");
+
+  const styleTag = "<style>" + cssText + "</style>";
+  const scriptTag = "<script>" + jsText + "<\\/script>";
+
+  if (/<\/head\s*>/i.test(html)) {
+    html = html.replace(/<\/head\s*>/i, styleTag + "</head>");
+  } else {
+    html = "<head>" + styleTag + "</head>" + html;
+  }
+
+  if (/<\/body\s*>/i.test(html)) {
+    html = html.replace(/<\/body\s*>/i, scriptTag + "</body>");
+  } else {
+    html += scriptTag;
+  }
+
+  frame.srcdoc = html;
+
+  frame.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+
+  websiteStatus("Preview updated. Check the preview below.");
+}
+
+/* =========================================
+   GENERATE PROJECT BUTTON
+   ========================================= */
+
+const createWebsiteButton = websiteElement("createWebsiteBtn");
+
+if (createWebsiteButton) {
+  createWebsiteButton.addEventListener("click", generateWebsite);
+}
+
+/* Character counter (optional HTML element) */
+
+const websiteIdeaInput = websiteElement("ideaInput");
+
+if (websiteIdeaInput) {
+  websiteIdeaInput.addEventListener("input", () => {
+    const counter = websiteElement("ideaCount");
+
+    if (counter) {
+      counter.textContent =
+        websiteIdeaInput.value.length + " / 12000";
+    }
+  });
+}
+
+
+
 # ---------------------------------------------------------
 # WEBSITE CREATOR - ZIP EXPORT
 # The browser sends generated files; the server does not
@@ -1491,6 +1996,8 @@ def coding_studio_save():
     )
 
 
+
+
 # ---------------------------------------------------------
 # FEEDBACK
 # ---------------------------------------------------------
@@ -1505,11 +2012,13 @@ def submit_feedback():
     state = safe_text(data.get("state"), 80)
     message = safe_text(data.get("message"), 3000)
 
+    # Validate rating
     try:
         rating = int(data.get("rating", 0))
     except (ValueError, TypeError):
         return error_response("Rating must be between 1 and 5.")
 
+    # Validate required fields
     if not name or not role or not state:
         return error_response(
             "Please enter your name, role and state."
@@ -1518,79 +2027,211 @@ def submit_feedback():
     if rating < 1 or rating > 5:
         return error_response("Rating must be between 1 and 5.")
 
-    with get_db() as db:
-        db.execute(
-            """INSERT INTO feedback
-               (user_id, name, role, state, rating, message, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (
-                session["user_id"],
-                name,
-                role,
-                state,
-                rating,
-                message,
-                now_iso(),
+    user_id = session.get("user_id")
+
+    # Validate the logged-in user and save feedback
+    try:
+        with get_db() as db:
+            user = db.execute(
+                "SELECT id FROM users WHERE id = ?",
+                (user_id,)
+            ).fetchone()
+
+            if user is None:
+                session.clear()
+                return error_response(
+                    "Your login session is invalid. Please log in again.",
+                    401
+                )
+
+            db.execute(
+                """
+                INSERT INTO feedback (
+                    user_id,
+                    name,
+                    role,
+                    state,
+                    rating,
+                    message,
+                    created_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user["id"],
+                    name,
+                    role,
+                    state,
+                    rating,
+                    message,
+                    now_iso(),
+                )
             )
+
+            summary = db.execute(
+                """
+                SELECT
+                    COUNT(*) AS count,
+                    AVG(rating) AS average
+                FROM feedback
+                """
+            ).fetchone()
+
+        return jsonify({
+            "success": True,
+            "message": "Thank you for your feedback!",
+            "feedback_count": summary["count"],
+            "average_rating": round(summary["average"] or 0, 2),
+        })
+
+    except Exception:
+        app.logger.exception(
+            "Failed to save feedback for the current user."
+        )
+        return error_response(
+            "Unable to save feedback right now. Please try again later.",
+            500
         )
 
-        summary = db.execute(
-            """SELECT COUNT(*) AS count, AVG(rating) AS average
-               FROM feedback"""
-        ).fetchone()
 
-    return jsonify({
-        "success": True,
-        "message": "Thank you for your feedback!",
-        "feedback_count": summary["count"],
-        "average_rating": round(summary["average"] or 0, 2),
-    })
-
+# ---------------------------------------------------------
+# FEEDBACK SUMMARY
+# ---------------------------------------------------------
 
 @app.get("/api/feedback/summary")
 def feedback_summary():
-    with get_db() as db:
-        summary = db.execute(
-            """SELECT COUNT(*) AS count, AVG(rating) AS average
-               FROM feedback"""
-        ).fetchone()
+    try:
+        with get_db() as db:
+            summary = db.execute(
+                """
+                SELECT
+                    COUNT(*) AS count,
+                    AVG(rating) AS average
+                FROM feedback
+                """
+            ).fetchone()
 
-    return jsonify({
-        "success": True,
-        "count": summary["count"],
-        "average_rating": round(summary["average"] or 0, 2),
-    })
+        return jsonify({
+            "success": True,
+            "count": summary["count"],
+            "average_rating": round(
+                summary["average"] or 0, 2
+            ),
+        })
+
+    except Exception:
+        app.logger.exception("Failed to load feedback summary.")
+        return error_response(
+            "Unable to load feedback summary.",
+            500
+        )
 
 
 # ---------------------------------------------------------
 # OPTIONAL ADMIN FEEDBACK VIEW
-# Configure ADMIN_USERNAME in .env.
+# Configure ADMIN_USERNAME in environment variables.
 # ---------------------------------------------------------
 
 @app.get("/admin/feedback")
 @login_required
 def admin_feedback():
-    admin_username = os.getenv("ADMIN_USERNAME", "")
+    admin_username = os.getenv("ADMIN_USERNAME", "").strip()
+    current_username = session.get("username", "")
 
     if (
         not admin_username
-        or session.get("username", "").casefold()
-        != admin_username.casefold()
+        or not isinstance(current_username, str)
+        or current_username.casefold() != admin_username.casefold()
+    ):
+        return error_response("Access denied.", 403)
+
+    try:
+        with get_db() as db:
+            rows = db.execute(
+                """
+                SELECT
+                    f.name,
+                    f.role,
+                    f.state,
+                    f.rating,
+                    f.message,
+                    f.created_at,
+                    u.username
+                FROM feedback AS f
+                JOIN users AS u ON u.id = f.user_id
+                ORDER BY f.id DESC
+                """
+            ).fetchall()
+
+            summary = db.execute(
+                """
+                SELECT
+                    COUNT(*) AS count,
+                    AVG(rating) AS average
+                FROM feedback
+                """
+            ).fetchone()
+
+        return jsonify({
+            "success": True,
+            "count": summary["count"],
+            "average_rating": round(
+                summary["average"] or 0, 2
+            ),
+            "feedback": [dict(row) for row in rows],
+        })
+
+    except Exception:
+        app.logger.exception("Failed to load admin feedback.")
+        return error_response(
+            "Unable to load admin feedback.",
+            500
+        )
+
+
+# ---------------------------------------------------------
+# OPTIONAL ADMIN FEEDBACK VIEW
+# Configure ADMIN_USERNAME in environment variables.
+# ---------------------------------------------------------
+
+@app.get("/admin/feedback")
+@login_required
+def admin_feedback():
+    admin_username = os.getenv("ADMIN_USERNAME", "").strip()
+    current_username = session.get("username", "")
+
+    # Verify admin access
+    if (
+        not admin_username
+        or not isinstance(current_username, str)
+        or current_username.casefold() != admin_username.casefold()
     ):
         return error_response("Access denied.", 403)
 
     with get_db() as db:
         rows = db.execute(
-            """SELECT f.name, f.role, f.state, f.rating,
-                      f.message, f.created_at, u.username
-               FROM feedback f
-               JOIN users u ON u.id = f.user_id
-               ORDER BY f.id DESC"""
+            """
+            SELECT
+                f.name,
+                f.role,
+                f.state,
+                f.rating,
+                f.message,
+                f.created_at,
+                u.username
+            FROM feedback AS f
+            JOIN users AS u ON u.id = f.user_id
+            ORDER BY f.id DESC
+            """
         ).fetchall()
 
         summary = db.execute(
-            """SELECT COUNT(*) AS count, AVG(rating) AS average
-               FROM feedback"""
+            """
+            SELECT
+                COUNT(*) AS count,
+                AVG(rating) AS average
+            FROM feedback
+            """
         ).fetchone()
 
     return jsonify({
@@ -1599,6 +2240,7 @@ def admin_feedback():
         "average_rating": round(summary["average"] or 0, 2),
         "feedback": [dict(row) for row in rows],
     })
+
 
 
 # ---------------------------------------------------------
