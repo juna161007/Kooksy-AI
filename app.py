@@ -444,8 +444,19 @@ def signup():
 
 
 @app.route("/signup/success", methods=["GET"])
+def signup_success():
+    return auth_page("Account Created", "signup_success")
+
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    message = ""
+
+    if request.method == "POST":
         username = safe_text(request.form.get("username"), 30)
-        recovery_code = safe_text(request.form.get("recovery_code"), 40).lower()
+        recovery_code = safe_text(
+            request.form.get("recovery_code"), 40
+        ).lower()
         new_password = request.form.get("new_password", "")
         confirm_password = request.form.get("confirm_password", "")
 
@@ -465,23 +476,32 @@ def signup():
                 ).fetchone()
 
                 if not user:
-                    # Generic response avoids revealing whether an account exists.
-                    message = "Details could not be verified. Check them and try again."
+                    # Avoid revealing whether an account exists.
+                    message = (
+                        "Details could not be verified. "
+                        "Check them and try again."
+                    )
                 else:
                     db.execute(
                         "UPDATE users SET password_hash = ? WHERE id = ?",
-                        (generate_password_hash(new_password), user["id"])
+                        (
+                            generate_password_hash(new_password),
+                            user["id"],
+                        ),
                     )
                     return render_template(
                         "forgot_password.html",
-                        message="Password reset successfully. You can now log in.",
-                        success=True
+                        message=(
+                            "Password reset successfully. "
+                            "You can now log in."
+                        ),
+                        success=True,
                     )
 
     return render_template(
         "forgot_password.html",
         message=message,
-        success=False
+        success=False,
     )
 
 
@@ -497,15 +517,16 @@ def login():
         with get_db() as db:
             user = db.execute(
                 "SELECT * FROM users WHERE username = ? COLLATE NOCASE",
-                (username,)
+                (username,),
             ).fetchone()
 
         if not user or not check_password_hash(
             user["password_hash"], password
         ):
             return auth_page(
-                "Login", "login",
-                "Invalid username or password."
+                "Login",
+                "login",
+                "Invalid username or password.",
             ), 401
 
         session.clear()
