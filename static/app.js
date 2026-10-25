@@ -979,105 +979,256 @@ if (content == null) {
 }
   /* ---------------- 13. WEBSITE CREATOR ---------------- */
 
-  async function generateWebsite() {
-    const input = $("websiteIdea") ||
-      $("website-idea") ||
-      $("ideaInput") ||
-      $("creatorInput");
+async function generateWebsite() {
+  const idea = getStudioValue([
+    "websiteIdea",
+    "website-idea",
+    "ideaInput",
+    "creatorInput"
+  ]);
 
-    const idea = input?.value.trim();
-
-    if (!idea) {
-      notify(getText("emptyIdea"), "warning");
-      return;
-    }
-
-    setBusy(true);
-
-    try {
-      const result = await postJSON(API.creator, {
-        idea,
-        prompt: idea,
-        language: state.language
-      });
-
-      const output = $("websiteOutput") ||
-        $("website-output") ||
-        $("creatorOutput");
-
-      const content =
-        result.code ||
-        result.project ||
-        result.response ||
-        result.result ||
-        result.output;
-
-      if (output) output.textContent = typeof content === "string"
-        ? content
-        : JSON.stringify(content, null, 2);
-
-      if (!output) notify("Project generated.", "success");
-    } catch (error) {
-      console.error("Website generation failed:", error);
-      notify(`${getText("creatorFailed")} ${error.message}`, "error");
-    } finally {
-      setBusy(false);
-    }
+  if (!idea || !idea.trim()) {
+    notify(getText("emptyIdea"), "warning");
+    return;
   }
 
-  /* ---------------- 14. FEEDBACK FORM ---------------- */
+  setBusy(true);
 
-  async function submitFeedback(event) {
-    if (event) event.preventDefault();
+  try {
+    const result = await postJSON(API.creator, {
+      idea: idea.trim(),
+      prompt: idea.trim(),
+      language: state.language,
+      output_format: "files",
+      required_files: ["index.html", "style.css", "app.js"],
+      responsive: true
+    });
 
-    const form = $("feedbackForm") || $("feedback-form");
-    if (!form) {
-      notify("Feedback form was not found.", "error");
-      return;
+    if (!result || typeof result !== "object") {
+      throw new Error("Invalid response received from the server.");
     }
 
-    const formData = new FormData(form);
-    const feedback = String(
-      formData.get("feedback") ||
-      formData.get("message") ||
-      formData.get("comments") ||
-      ""
-    ).trim();
-
-    const rating = Number(formData.get("rating") || formData.get("stars") || 0);
-
-    if (!feedback) {
-      notify(getText("emptyFeedback"), "warning");
-      return;
+    if (result.error) {
+      throw new Error(result.error);
     }
 
-    if (rating < 1 || rating > 5) {
-      notify(getText("chooseRating"), "warning");
-      return;
+    const files = getWebsiteFiles(result);
+
+    if (files && Object.keys(files).length > 0) {
+      showWebsiteFiles(files);
+      buildWebsitePreview(files);
+
+      setStudioText(
+        ["creatorExplanation", "websiteExplanation", "creatorExplanation"],
+        result.explanation ||
+          result.message ||
+          "Website files generated successfully."
+      );
+
+      setStudioText(
+        ["creatorDeployment", "websiteDeployment"],
+        result.deployment_guide ||
+          result.setup_instructions ||
+          ""
+      );
+
+      setStudioText(
+        ["creatorHosting", "websiteHosting"],
+        result.hosting_suggestions ||
+          result.hosting ||
+          ""
+      );
+
+      notify("Website files generated successfully.", "success");
+    } else {
+      const output = getFirstElement([
+        "websiteOutput",
+        "website-output",
+        "creatorOutput"
+      ]);
+
+      if (output) {
+        output.textContent =
+          result.response ||
+          result.result ||
+          result.output ||
+          result.message ||
+          "The server did not return structured website files.";
+      }
+
+      notify(
+        "AI responded, but website files were not found in the response.",
+        "warning"
+      );
     }
+  } catch (error) {
+    console.error("Website Creator failed:", error);
 
-    setBusy(true);
-
-    try {
-      const payload = {
-        name: String(formData.get("name") || "").trim(),
-        role: String(formData.get("role") || "").trim(),
-        state: String(formData.get("state") || "").trim(),
-        rating,
-        feedback,
-        language: state.language
-      };
-
-      await postJSON(API.feedback, payload);
-      form.reset();
-      notify(getText("feedbackSuccess"), "success");
-    } catch (error) {
-      console.error("Feedback submission failed:", error);
-      notify(`${getText("feedbackFailed")} ${error.message}`, "error");
-    } finally {
-      setBusy(false);
-    }
+    notify(
+      `${getText("creatorFailed")} ${error.message || "Unknown error"}`,
+      "error"
+    );
+  } finally {
+    setBusy(false);
   }
+}
+
+
+/* ---------------- 14. FEEDBACK FORM ---------------- */
+
+function updateFeedbackRating(rating, form) {
+  if (!form) return;
+
+  const value = Math.max(0, Math.min(5, Number(rating) || 0));
+
+  const ratingDisplay =
+    form.querySelector("#ratingDisplay") ||
+    form.querySelector("#rating-display") ||
+    form.querySelector(".rating-display");
+
+  const ratingInput =
+    form.querySelector("#ratingInput") ||
+    form.querySelector('[name="rating"]') ||
+    form.querySelector('[name="stars"]');
+
+  if (ratingInput) {
+    ratingInput.value = String(value);
+  }
+
+  if (ratingDisplay) {
+    ratingDisplay.textContent = `${value}/5`;
+  }
+
+  form.querySelectorAll("#stars [data-star], .stars [data-star]").forEach(
+    (star) => {
+      const starValue = Number(star.dataset.star);
+      const selected = starValue <= value;
+
+      star.textContent = selected ? "★" : "☆";
+      star.style.color = selected ? "#fbbf24" : "#9ca3af";
+      star.setAttribute(
+        "aria-pressed",
+        String(starValue === value)
+      );
+    }
+  );
+}
+
+function bindFeedbackRating() {
+  const form = $("feedbackForm") || $("feedback-form");
+
+  if (!form || form.dataset.ratingBound === "true") return;
+
+  const ratingInput =
+    form.querySelector("#ratingInput") ||
+    form.querySelector('[name="rating"]') ||
+    form.querySelector('[name="stars"]');
+
+  const stars = form.querySelectorAll(
+    "#stars [data-star], .stars [data-star]"
+  );
+
+  if (!ratingInput) {
+    console.warn(
+      "Feedback rating input is missing. Add a hidden input with name='rating'."
+    );
+    return;
+  }
+
+  if (!stars.length) {
+    console.warn("Feedback star buttons were not found.");
+    return;
+  }
+
+  form.dataset.ratingBound = "true";
+
+  stars.forEach((star) => {
+    star.addEventListener("click", () => {
+      updateFeedbackRating(star.dataset.star, form);
+    });
+  });
+
+  updateFeedbackRating(ratingInput.value, form);
+}
+
+async function submitFeedback(event) {
+  if (event) event.preventDefault();
+
+  const form = $("feedbackForm") || $("feedback-form");
+
+  if (!form) {
+    notify("Feedback form was not found.", "error");
+    return;
+  }
+
+  const formData = new FormData(form);
+
+  const feedback = String(
+    formData.get("feedback") ||
+    formData.get("message") ||
+    formData.get("comments") ||
+    ""
+  ).trim();
+
+  const ratingInput =
+    form.querySelector("#ratingInput") ||
+    form.querySelector('[name="rating"]') ||
+    form.querySelector('[name="stars"]');
+
+  const rating = Number(ratingInput ? ratingInput.value : 0);
+
+  if (!feedback) {
+    notify(getText("emptyFeedback"), "warning");
+    return;
+  }
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    notify(getText("chooseRating"), "warning");
+    return;
+  }
+
+  setBusy(true);
+
+  try {
+    const payload = {
+      name: String(formData.get("name") || "").trim(),
+      role: String(formData.get("role") || "").trim(),
+      state: String(formData.get("state") || "").trim(),
+      rating: rating,
+      feedback: feedback,
+      language: state.language
+    };
+
+    const result = await postJSON(API.feedback, payload);
+
+    if (result && result.error) {
+      throw new Error(result.error);
+    }
+
+    form.reset();
+    updateFeedbackRating(0, form);
+
+    notify(
+      getText("feedbackSuccess") ||
+        "Thank you! Your feedback was submitted.",
+      "success"
+    );
+  } catch (error) {
+    console.error("Feedback submission failed:", error);
+
+    notify(
+      `${getText("feedbackFailed") || "Feedback submission failed."} ${
+        error.message || "Please try again."
+      }`,
+      "error"
+    );
+  } finally {
+    setBusy(false);
+  }
+}
+
+ 
+
 
   /* ---------------- 15. COPY AND DOWNLOAD ---------------- */
 
