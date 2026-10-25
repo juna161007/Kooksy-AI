@@ -1073,8 +1073,7 @@ async function generateWebsite() {
   }
 }
 
-
-/* ---------------- 14. FEEDBACK FORM ---------------- */
+ ---------------- 14. FEEDBACK FORM ---------------- 
 
 function updateFeedbackRating(rating, form) {
   if (!form) return;
