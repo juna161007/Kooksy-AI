@@ -1132,7 +1132,9 @@ def studio_ai_prompt(action, files, instruction, language):
         "explain": (
             "Explain the project and important code sections simply. "
             "Do not rewrite files unless necessary."
-                if not task:
+                      ),
+    }
+  if not task:
         raise ValueError("Unsupported Coding Studio action.")
 
     return f"""
