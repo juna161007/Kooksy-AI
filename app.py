@@ -852,18 +852,27 @@ def extract_file_text(file_storage, extension):
     if extension == "docx":
         try:
             from docx import Document
+
             document = Document(io.BytesIO(raw))
             text = "\n".join(p.text for p in document.paragraphs)
+
             for table in document.tables:
                 for row in table.rows:
-                    text += "\n" + " | ".join(cell.text for cell in row.cells)
+                    text += "\n" + " | ".join(
+                        cell.text for cell in row.cells
+                    )
+
             return text[:MAX_CONTEXT_LENGTH]
+
         except ImportError:
             raise RuntimeError(
                 "DOCX support requires python-docx. Install it with pip."
             )
-                    except Exception as exc:
-            raise RuntimeError("Could not read this DOCX file.") from exc
+
+        except Exception as exc:
+            raise RuntimeError(
+                "Could not read this DOCX file."
+            ) from exc
 
     text = raw.decode("utf-8-sig", errors="replace")
 
@@ -872,15 +881,6 @@ def extract_file_text(file_storage, extension):
             rows = list(csv.reader(io.StringIO(text)))
             return "\n".join(
                 " | ".join(row) for row in rows[:500]
-            )[:MAX_CONTEXT_LENGTH]
-        except csv.Error:
-            return text[:MAX_CONTEXT_LENGTH]
-
-    if extension == "json":
-        try:
-            parsed = json.loads(text)
-            return json.dumps(
-                parsed, ensure_ascii=False, indent=2
             )[:MAX_CONTEXT_LENGTH]
         except json.JSONDecodeError:
             return text[:MAX_CONTEXT_LENGTH]
