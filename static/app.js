@@ -2069,3 +2069,294 @@ function bindCreatorStudioEvents() {
 
 })();
 
+/* =========================================
+   WEBSITE CREATOR STATE
+   ========================================= */
+
+const websiteCreatorFiles = {
+  files: {},
+  activeFile: "index.html",
+  projectName: "",
+  description: "",
+  deployment: [],
+  hosting: []
+};
+
+const WEBSITE_FILE_NAMES = [
+  "index.html",
+  "style.css",
+  "app.js"
+];
+
+/* =========================================
+   HELPER FUNCTIONS
+   ========================================= */
+
+function websiteElement(id) {
+  return document.getElementById(id);
+}
+
+function websiteStatus(message, isError = false) {
+  const status = websiteElement("creatorStatus");
+
+  if (!status) return;
+
+  status.textContent = message;
+  status.classList.toggle("creator-status-error", isError);
+  status.classList.toggle("creator-status-success", !isError);
+}
+
+/* =========================================
+   COPY GENERATED FILE
+   ========================================= */
+
+async function copyWebsiteFile(filename) {
+  const content = websiteCreatorFiles.files[filename];
+
+  if (typeof content !== "string") {
+    websiteStatus("Generate a project and select a file first.", true);
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(content);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = content;
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+
+      document.body.appendChild(textarea);
+      textarea.select();
+
+      const copied = document.execCommand("copy");
+      textarea.remove();
+
+      if (!copied) {
+        throw new Error("Clipboard copy was blocked.");
+      }
+    }
+
+    websiteStatus(filename + " code copied successfully!");
+  } catch (error) {
+    console.error("Copy file:", error);
+    websiteStatus(
+      "Copy failed. Please select and copy the code manually.",
+      true
+    );
+  }
+}
+
+/* =========================================
+   DOWNLOAD INDIVIDUAL FILE
+   ========================================= */
+
+function downloadWebsiteFile(filename) {
+  const content = websiteCreatorFiles.files[filename];
+
+  if (typeof content !== "string") {
+    websiteStatus("Generate a project and select a file first.", true);
+    return;
+  }
+
+  const blob = new Blob([content], {
+    type: "text/plain;charset=utf-8"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = filename;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  websiteStatus("Downloading " + filename + "...");
+}
+
+/* =========================================
+   SELECT A GENERATED FILE
+   ========================================= */
+
+function showWebsiteFile(filename) {
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      websiteCreatorFiles.files,
+      filename
+    )
+  ) {
+    return;
+  }
+
+  websiteCreatorFiles.activeFile = filename;
+  renderWebsiteCreator();
+}
+
+/* =========================================
+   RENDER GENERATED WEBSITE FILES
+   ========================================= */
+
+function renderWebsiteCreator() {
+  const output = websiteElement("creatorResult");
+
+  if (!output) return;
+
+  const files = websiteCreatorFiles.files;
+  const active = websiteCreatorFiles.activeFile;
+
+  if (!Object.keys(files).length) {
+    output.textContent = "Generate a project to view your files.";
+    return;
+  }
+
+  if (typeof files[active] !== "string") {
+    websiteCreatorFiles.activeFile =
+      WEBSITE_FILE_NAMES.find(
+        (name) => typeof files[name] === "string"
+      ) || Object.keys(files)[0];
+  }
+
+  const activeFile = websiteCreatorFiles.activeFile;
+
+  const projectHead = document.createElement("div");
+  projectHead.className = "creator-project-head";
+
+  const title = document.createElement("h3");
+  title.textContent =
+    websiteCreatorFiles.projectName || "Your Website";
+
+  const description = document.createElement("p");
+  description.className = "muted";
+  description.textContent = websiteCreatorFiles.description || "";
+
+  const projectActions = document.createElement("div");
+  projectActions.className = "creator-actions";
+
+  const zipButton = document.createElement("button");
+  zipButton.type = "button";
+  zipButton.className = "primary";
+  zipButton.textContent = "Download All (ZIP)";
+  zipButton.addEventListener("click", downloadWebsiteZip);
+
+  const previewButton = document.createElement("button");
+  previewButton.type = "button";
+  previewButton.className = "ghost";
+  previewButton.textContent = "Live Preview";
+  previewButton.addEventListener("click", previewGeneratedWebsite);
+
+  projectActions.append(zipButton, previewButton);
+  projectHead.append(title, description, projectActions);
+
+  const fileCard = document.createElement("div");
+  fileCard.className = "creator-file";
+
+  const fileHead = document.createElement("div");
+  fileHead.className = "creator-file-head";
+
+  const tabs = document.createElement("div");
+  tabs.className = "creator-file-actions";
+
+  WEBSITE_FILE_NAMES
+    .filter((name) => typeof files[name] === "string")
+    .forEach((filename) => {
+      const tab = document.createElement("button");
+
+      tab.type = "button";
+      tab.textContent = filename;
+      tab.dataset.fileTab = filename;
+      tab.className = filename === activeFile ? "active" : "";
+
+      tab.addEventListener("click", () => {
+        showWebsiteFile(filename);
+      });
+
+      tabs.appendChild(tab);
+    });
+
+  const actions = document.createElement("div");
+  actions.className = "creator-file-actions";
+
+  const copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.className = "ghost";
+  copyButton.textContent = "Copy Code";
+  copyButton.addEventListener("click", () => {
+    copyWebsiteFile(activeFile);
+  });
+
+  const downloadButton = document.createElement("button");
+  downloadButton.type = "button";
+  downloadButton.className = "ghost";
+  downloadButton.textContent = "Download File";
+  downloadButton.addEventListener("click", () => {
+    downloadWebsiteFile(activeFile);
+  });
+
+  actions.append(copyButton, downloadButton);
+  fileHead.append(tabs, actions);
+
+  const pre = document.createElement("pre");
+  const code = document.createElement("code");
+
+  code.textContent = files[activeFile] || "";
+
+  pre.appendChild(code);
+  fileCard.append(fileHead, pre);
+
+  output.replaceChildren(projectHead, fileCard);
+
+  if (websiteCreatorFiles.deployment.length) {
+    const guide = document.createElement("div");
+    guide.className = "creator-guide";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Deployment Guide";
+
+    const list = document.createElement("ol");
+
+    websiteCreatorFiles.deployment.forEach((step) => {
+      const item = document.createElement("li");
+      item.textContent = String(step);
+      list.appendChild(item);
+    });
+
+    guide.append(heading, list);
+    output.appendChild(guide);
+  }
+
+  if (websiteCreatorFiles.hosting.length) {
+    const guide = document.createElement("div");
+    guide.className = "creator-guide";
+
+    const heading = document.createElement("h3");
+    heading.textContent = "Hosting Suggestions";
+
+    const list = document.createElement("ul");
+
+    websiteCreatorFiles.hosting.forEach((item) => {
+      const li = document.createElement("li");
+
+      const name =
+        item && typeof item === "object"
+          ? String(item.name || "Hosting option")
+          : String(item);
+
+      const reason =
+        item && typeof item === "object"
+          ? String(item.reason || "")
+          : "";
+
+      li.textContent = reason ? name + ": " + reason : name;
+      list.appendChild(li);
+    });
+
+    guide.append(heading, list);
+    output.appendChild(guide);
+  }
+}
+
