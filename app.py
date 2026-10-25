@@ -1032,7 +1032,6 @@ STUDIO_ALLOWED_EXTENSIONS = {
     ".yml", ".yaml", ".sql", ".sh"
 }
 
-
 def studio_clean_filename(filename):
     """Allow safe project-relative filenames only."""
     filename = str(filename or "").replace("\\", "/").strip()
@@ -1048,7 +1047,18 @@ def studio_clean_filename(filename):
 
     if not re.fullmatch(r"[A-Za-z0-9_. /-]+", filename):
         return None
-                    f"Upload between 1 and {STUDIO_MAX_FILES} project files."
+
+    return filename
+
+
+def studio_validate_files(raw_files):
+    """Validate uploaded project files and enforce size limits."""
+    if not isinstance(raw_files, list):
+        raise ValueError("Project files must be provided as a list.")
+
+    if not 1 <= len(raw_files) <= STUDIO_MAX_FILES:
+        raise ValueError(
+            f"Upload between 1 and {STUDIO_MAX_FILES} project files."
         )
 
     files = {}
@@ -1081,8 +1091,6 @@ def studio_clean_filename(filename):
         raise ValueError("No valid project files were supplied.")
 
     return files
-
-
 def studio_extract_json(text):
     """Parse JSON returned by the AI, including fenced JSON."""
     text = (text or "").strip()
@@ -1181,42 +1189,105 @@ def create_website():
         language = "en"
 
     prompt = f"""
-You are Kooksy AI Website Creator. Create a small, polished, responsive
-website from the user's idea.
+You are Kooksy AI Website Creator.
+
+Create a polished, responsive website based on the user's idea.
 
 User's website idea:
 {idea}
 
-Return valid JSON only, with exactly this shape:
+Selected language: {language}
+
+Return valid JSON only, using exactly this structure:
 {{
-  "project_name": "short project name",
-  "description": "brief description in the selected language",
+  "project_name": "Short project name",
+  "description": "Brief description in the selected language",
   "files": {{
-    "index.html": "complete HTML document",
-    "style.css": "complete responsive CSS",
-    "app.js": "complete JavaScript, or an empty string if not needed"
+    "index.html": "Complete HTML document",
+    "style.css": "Complete responsive CSS",
+    "app.js": "Complete JavaScript or an empty string"
   }},
-  "deployment_instructions": ["clear step"],
+  "deployment_instructions": ["Clear deployment step"],
   "hosting_suggestions": [
-    {{"name": "Hosting provider", "reason": "short reason"}}
+    {{
+      "name": "Hosting provider",
+      "reason": "Short explanation"
+    }}
   ]
 }}
 
 Requirements:
-- Include all HTML, CSS, and JavaScript needed for the requested front-end.
-- Link index.html to style.css and app.js using relative filenames.
-        memory_file.seek(0)
+- Generate complete, functional front-end files.
+- Link index.html to style.css and app.js using relative paths.
+- Make the website responsive on mobile and desktop.
+- Use professional styling and accessible HTML.
+- Keep all user-visible text in the selected language where practical.
+- Return JSON only, without Markdown fences.
+- Do not include explanations outside the JSON object.
+"""
 
-        return send_file(
-            memory_file,
-            mimetype="application/zip",
-            as_attachment=True,
-            download_name="kooksy-website.zip",
+    try:
+        result = call_groq(
+            prompt,
+            language=language,
         )
 
-    except ValueError as exc:
-        return error_response(str(exc))
+        if isinstance(result, str):
+            result = result.strip()
 
+            if result.startswith("```"):
+                result = re.sub(
+                    r"^```(?:json)?\s*|\s*```$",
+                    "",
+                    result,
+                    flags=re.IGNORECASE,
+                ).strip()
+
+            result = json.loads(result)
+
+        if not isinstance(result, dict):
+            return error_response(
+                "The AI returned an invalid website project.",
+                502,
+            )
+
+        project_files = result.get("files")
+
+        if not isinstance(project_files, dict):
+            return error_response(
+                "The generated project has no valid files.",
+                502,
+            )
+
+        required_files = ("index.html", "style.css", "app.js")
+
+        for filename in required_files:
+            content = project_files.get(filename, "")
+
+            if not isinstance(content, str):
+                return error_response(
+                    f"Invalid generated content for {filename}.",
+                    502,
+                )
+
+        result["files"] = {
+            filename: project_files.get(filename, "")
+            for filename in required_files
+        }
+
+        return jsonify({
+            "success": True,
+            "project": result,
+        })
+
+    except RuntimeError as exc:
+        return error_response(str(exc), 502)
+
+    except (ValueError, json.JSONDecodeError):
+        return error_response(
+            "Kooksy AI could not generate valid website JSON. Please try again.",
+            502,
+        )
 
 # ---------------------------------------------------------
 # KOOKIE'S AI CODING STUDIO - AI ACTIONS
