@@ -2,7 +2,7 @@
 "use strict";
 
 /* ============================================================
-   KOOKSY AI — MAIN FRONTEND JAVASCRIPT
+   KOOKSY AI â€” MAIN FRONTEND JAVASCRIPT
    File: static/app.js
    ============================================================ */
 
@@ -54,16 +54,16 @@
       goal: "Agent Goal",
       creator: "Website Creator",
       feedback: "Feedback",
-      newChat: "＋ New Chat",
-      send: "Send ↑",
+      newChat: "ï¼‹ New Chat",
+      send: "Send â†‘",
       logout: "Log out",
       welcomeTitle: "Intelligence with a Spark.",
       welcomeText:
         "Ask questions, continue a conversation, analyse a file, or turn your idea into a website project.",
-      welcomeEyebrow: "KOOKSY AI · YOUR AI WORKSPACE",
-      prompt: "Message Kooksy AI…",
-      upload: "＋ Analyse a file",
-      fileHelp: "CSV, TXT, MD, PDF, DOCX, JSON, PY, HTML, CSS, JS, LOG · Max 10 MB",
+      welcomeEyebrow: "KOOKSY AI Â· YOUR AI WORKSPACE",
+      prompt: "Message Kooksy AIâ€¦",
+      upload: "ï¼‹ Analyse a file",
+      fileHelp: "CSV, TXT, MD, PDF, DOCX, JSON, PY, HTML, CSS, JS, LOG Â· Max 10 MB",
       aiDisclaimer:
         "AI can make mistakes. Verify important information and review generated code before using it.",
       suggestions: [
@@ -74,22 +74,22 @@
       historyTitle: "Echoes of Time",
       historyDescription:
         "Open a previous conversation or delete one you no longer need.",
-      historyLoading: "Loading your conversations…",
+      historyLoading: "Loading your conversationsâ€¦",
       noHistory: "No saved conversations yet.",
       goalTitle: "Turn a goal into a plan",
       goalDescription:
         "Describe a task. Kooksy AI will outline steps, success criteria, risks and limitations.",
       goalLabel: "What do you want to achieve?",
       goalPlaceholder:
-        "Example: Plan a student portfolio website and explain how to publish it…",
-      goalButton: "Generate plan ✦",
+        "Example: Plan a student portfolio website and explain how to publish itâ€¦",
+      goalButton: "Generate plan âœ¦",
       creatorTitle: "Website Creator",
       creatorDescription:
         "Describe your idea. Generate frontend and backend code with deployment instructions.",
       ideaLabel: "Describe your website or project idea",
       ideaPlaceholder:
-        "Describe your website, required features, design, frontend, backend and database…",
-      creatorButton: "Generate project ✦",
+        "Describe your website, required features, design, frontend, backend and databaseâ€¦",
+      creatorButton: "Generate project âœ¦",
       creatorDisclaimer:
         "Kooksy AI generates code and deployment guidance. It does not deploy your website automatically. Test generated code before production use.",
       feedbackTitle: "Share your feedback",
@@ -101,15 +101,15 @@
       feedbackLabel: "Feedback",
       feedbackPlaceholder: "What worked well? What could improve?",
       submitFeedback: "Submit feedback",
-      loading: "Please wait…",
-      listening: "Listening… Speak now.",
+      loading: "Please waitâ€¦",
+      listening: "Listeningâ€¦ Speak now.",
       voiceUnsupported: "Voice recognition is not supported by this browser.",
       voicePermission: "Please allow microphone access and try again.",
       emptyMessage: "Please enter a message first.",
       fileTooLarge: "The file exceeds the 10 MB limit.",
       invalidFile: "This file type is not supported.",
       fileSelected: "File selected",
-      analyzing: "Analysing file…",
+      analyzing: "Analysing fileâ€¦",
       fileSuccess: "File analysis completed.",
       fileFailed: "File analysis failed.",
       chatFailed: "Unable to get an AI response. Please try again.",
@@ -145,141 +145,141 @@
     },
 
     "zh-CN": {
-      assistant: "AI 助手",
-      history: "对话历史",
-      goal: "目标规划",
-      creator: "网站创建器",
-      feedback: "反馈",
-      newChat: "＋ 新对话",
-      send: "发送 ↑",
-      logout: "退出登录",
-      welcomeTitle: "智慧，灵感闪耀。",
-      welcomeText: "提问、继续对话、分析文件，或将想法转化为网站项目。",
-      welcomeEyebrow: "KOOKSY AI · 您的 AI 工作空间",
-      prompt: "向 Kooksy AI 发送消息…",
-      upload: "＋ 分析文件",
-      suggestions: ["用简单语言解释 AI", "帮助我规划项目", "编写并解释 Python 代码"],
-      historyTitle: "对话历史",
-      historyDescription: "打开以前的对话或删除不再需要的对话。",
-      historyLoading: "正在加载对话…",
-      noHistory: "暂无保存的对话。",
-      goalTitle: "将目标转化为计划",
-      goalDescription: "描述任务，AI 将列出步骤、成功标准、风险和限制。",
-      goalLabel: "你想实现什么目标？",
-      goalPlaceholder: "例如：规划一个学生作品集网站，并说明如何发布…",
-      goalButton: "生成计划 ✦",
-      creatorTitle: "网站创建器",
-      creatorDescription: "描述你的想法，生成前端、后端代码和部署说明。",
-      ideaLabel: "描述你的网站或项目想法",
-      ideaPlaceholder: "描述网站、所需功能、设计、前端、后端和数据库…",
-      creatorButton: "生成项目 ✦",
-      creatorDisclaimer: "AI 生成代码和部署指南，但不会自动部署网站。上线前请测试代码。",
-      feedbackTitle: "分享反馈",
-      feedbackDescription: "告诉我们你使用 Kooksy AI 的体验。",
-      name: "姓名",
-      role: "角色",
-      state: "州",
-      rating: "星级评分",
-      feedbackLabel: "反馈",
-      feedbackPlaceholder: "哪些方面做得好？哪些需要改进？",
-      submitFeedback: "提交反馈",
-      loading: "请稍候…",
-      listening: "正在聆听…请讲话。",
-      emptyMessage: "请先输入消息。",
-      fileTooLarge: "文件超过 10 MB 限制。",
-      invalidFile: "不支持此文件类型。",
-      fileSelected: "已选择文件",
-      analyzing: "正在分析文件…",
-      fileSuccess: "文件分析完成。",
-      chatFailed: "无法获取 AI 回复，请重试。",
-      goalFailed: "无法生成计划，请重试。",
-      creatorFailed: "无法生成项目，请重试。",
-      feedbackSuccess: "谢谢！反馈已提交。",
-      feedbackFailed: "无法提交反馈，请重试。",
-      chooseRating: "请选择星级。",
-      historyFailed: "无法加载聊天历史。",
-      historyDelete: "删除",
-      historyOpen: "打开",
-      confirmDelete: "确定删除此对话吗？",
-      deleteFailed: "无法删除此对话。",
-      deleteSuccess: "对话已删除。",
-      copied: "已复制。",
-      copyFailed: "无法复制文本。",
-      networkError: "网络错误，请检查连接后重试。",
-      user: "你",
+      assistant: "AI åŠ©æ‰‹",
+      history: "å¯¹è¯åŽ†å²",
+      goal: "ç›®æ ‡è§„åˆ’",
+      creator: "ç½‘ç«™åˆ›å»ºå™¨",
+      feedback: "åé¦ˆ",
+      newChat: "ï¼‹ æ–°å¯¹è¯",
+      send: "å‘é€ â†‘",
+      logout: "é€€å‡ºç™»å½•",
+      welcomeTitle: "æ™ºæ…§ï¼Œçµæ„Ÿé—ªè€€ã€‚",
+      welcomeText: "æé—®ã€ç»§ç»­å¯¹è¯ã€åˆ†æžæ–‡ä»¶ï¼Œæˆ–å°†æƒ³æ³•è½¬åŒ–ä¸ºç½‘ç«™é¡¹ç›®ã€‚",
+      welcomeEyebrow: "KOOKSY AI Â· æ‚¨çš„ AI å·¥ä½œç©ºé—´",
+      prompt: "å‘ Kooksy AI å‘é€æ¶ˆæ¯â€¦",
+      upload: "ï¼‹ åˆ†æžæ–‡ä»¶",
+      suggestions: ["ç”¨ç®€å•è¯­è¨€è§£é‡Š AI", "å¸®åŠ©æˆ‘è§„åˆ’é¡¹ç›®", "ç¼–å†™å¹¶è§£é‡Š Python ä»£ç "],
+      historyTitle: "å¯¹è¯åŽ†å²",
+      historyDescription: "æ‰“å¼€ä»¥å‰çš„å¯¹è¯æˆ–åˆ é™¤ä¸å†éœ€è¦çš„å¯¹è¯ã€‚",
+      historyLoading: "æ­£åœ¨åŠ è½½å¯¹è¯â€¦",
+      noHistory: "æš‚æ— ä¿å­˜çš„å¯¹è¯ã€‚",
+      goalTitle: "å°†ç›®æ ‡è½¬åŒ–ä¸ºè®¡åˆ’",
+      goalDescription: "æè¿°ä»»åŠ¡ï¼ŒAI å°†åˆ—å‡ºæ­¥éª¤ã€æˆåŠŸæ ‡å‡†ã€é£Žé™©å’Œé™åˆ¶ã€‚",
+      goalLabel: "ä½ æƒ³å®žçŽ°ä»€ä¹ˆç›®æ ‡ï¼Ÿ",
+      goalPlaceholder: "ä¾‹å¦‚ï¼šè§„åˆ’ä¸€ä¸ªå­¦ç”Ÿä½œå“é›†ç½‘ç«™ï¼Œå¹¶è¯´æ˜Žå¦‚ä½•å‘å¸ƒâ€¦",
+      goalButton: "ç”Ÿæˆè®¡åˆ’ âœ¦",
+      creatorTitle: "ç½‘ç«™åˆ›å»ºå™¨",
+      creatorDescription: "æè¿°ä½ çš„æƒ³æ³•ï¼Œç”Ÿæˆå‰ç«¯ã€åŽç«¯ä»£ç å’Œéƒ¨ç½²è¯´æ˜Žã€‚",
+      ideaLabel: "æè¿°ä½ çš„ç½‘ç«™æˆ–é¡¹ç›®æƒ³æ³•",
+      ideaPlaceholder: "æè¿°ç½‘ç«™ã€æ‰€éœ€åŠŸèƒ½ã€è®¾è®¡ã€å‰ç«¯ã€åŽç«¯å’Œæ•°æ®åº“â€¦",
+      creatorButton: "ç”Ÿæˆé¡¹ç›® âœ¦",
+      creatorDisclaimer: "AI ç”Ÿæˆä»£ç å’Œéƒ¨ç½²æŒ‡å—ï¼Œä½†ä¸ä¼šè‡ªåŠ¨éƒ¨ç½²ç½‘ç«™ã€‚ä¸Šçº¿å‰è¯·æµ‹è¯•ä»£ç ã€‚",
+      feedbackTitle: "åˆ†äº«åé¦ˆ",
+      feedbackDescription: "å‘Šè¯‰æˆ‘ä»¬ä½ ä½¿ç”¨ Kooksy AI çš„ä½“éªŒã€‚",
+      name: "å§“å",
+      role: "è§’è‰²",
+      state: "å·ž",
+      rating: "æ˜Ÿçº§è¯„åˆ†",
+      feedbackLabel: "åé¦ˆ",
+      feedbackPlaceholder: "å“ªäº›æ–¹é¢åšå¾—å¥½ï¼Ÿå“ªäº›éœ€è¦æ”¹è¿›ï¼Ÿ",
+      submitFeedback: "æäº¤åé¦ˆ",
+      loading: "è¯·ç¨å€™â€¦",
+      listening: "æ­£åœ¨è†å¬â€¦è¯·è®²è¯ã€‚",
+      emptyMessage: "è¯·å…ˆè¾“å…¥æ¶ˆæ¯ã€‚",
+      fileTooLarge: "æ–‡ä»¶è¶…è¿‡ 10 MB é™åˆ¶ã€‚",
+      invalidFile: "ä¸æ”¯æŒæ­¤æ–‡ä»¶ç±»åž‹ã€‚",
+      fileSelected: "å·²é€‰æ‹©æ–‡ä»¶",
+      analyzing: "æ­£åœ¨åˆ†æžæ–‡ä»¶â€¦",
+      fileSuccess: "æ–‡ä»¶åˆ†æžå®Œæˆã€‚",
+      chatFailed: "æ— æ³•èŽ·å– AI å›žå¤ï¼Œè¯·é‡è¯•ã€‚",
+      goalFailed: "æ— æ³•ç”Ÿæˆè®¡åˆ’ï¼Œè¯·é‡è¯•ã€‚",
+      creatorFailed: "æ— æ³•ç”Ÿæˆé¡¹ç›®ï¼Œè¯·é‡è¯•ã€‚",
+      feedbackSuccess: "è°¢è°¢ï¼åé¦ˆå·²æäº¤ã€‚",
+      feedbackFailed: "æ— æ³•æäº¤åé¦ˆï¼Œè¯·é‡è¯•ã€‚",
+      chooseRating: "è¯·é€‰æ‹©æ˜Ÿçº§ã€‚",
+      historyFailed: "æ— æ³•åŠ è½½èŠå¤©åŽ†å²ã€‚",
+      historyDelete: "åˆ é™¤",
+      historyOpen: "æ‰“å¼€",
+      confirmDelete: "ç¡®å®šåˆ é™¤æ­¤å¯¹è¯å—ï¼Ÿ",
+      deleteFailed: "æ— æ³•åˆ é™¤æ­¤å¯¹è¯ã€‚",
+      deleteSuccess: "å¯¹è¯å·²åˆ é™¤ã€‚",
+      copied: "å·²å¤åˆ¶ã€‚",
+      copyFailed: "æ— æ³•å¤åˆ¶æ–‡æœ¬ã€‚",
+      networkError: "ç½‘ç»œé”™è¯¯ï¼Œè¯·æ£€æŸ¥è¿žæŽ¥åŽé‡è¯•ã€‚",
+      user: "ä½ ",
       ai: "Kooksy AI",
-      emptyGoal: "请描述你的目标。",
-      emptyIdea: "请描述你的网站想法。",
-      emptyFeedback: "请输入反馈。"
+      emptyGoal: "è¯·æè¿°ä½ çš„ç›®æ ‡ã€‚",
+      emptyIdea: "è¯·æè¿°ä½ çš„ç½‘ç«™æƒ³æ³•ã€‚",
+      emptyFeedback: "è¯·è¾“å…¥åé¦ˆã€‚"
     },
 
     hi: {
-      assistant: "AI सहायक",
-      history: "पुरानी बातचीत",
-      goal: "लक्ष्य योजना",
-      creator: "वेबसाइट निर्माता",
-      feedback: "प्रतिक्रिया",
-      newChat: "＋ नई चैट",
-      send: "भेजें ↑",
-      logout: "लॉग आउट",
-      welcomeTitle: "बुद्धिमत्ता की एक नई चमक।",
-      welcomeText: "सवाल पूछें, बातचीत जारी रखें, फ़ाइल का विश्लेषण करें या वेबसाइट बनाएँ।",
-      welcomeEyebrow: "KOOKSY AI · आपका AI कार्यक्षेत्र",
-      prompt: "Kooksy AI को संदेश भेजें…",
-      upload: "＋ फ़ाइल का विश्लेषण",
-      suggestions: ["AI को आसान भाषा में समझाएँ", "प्रोजेक्ट की योजना बनाएँ", "Python कोड लिखें और समझाएँ"],
-      historyTitle: "पुरानी बातचीत",
-      historyDescription: "पुरानी बातचीत खोलें या हटाएँ।",
-      historyLoading: "बातचीत लोड हो रही है…",
-      noHistory: "अभी कोई सेव की गई बातचीत नहीं है।",
-      goalTitle: "लक्ष्य को योजना में बदलें",
-      goalDescription: "कार्य बताएँ। AI चरण, सफलता के मानदंड, जोखिम और सीमाएँ बताएगा।",
-      goalLabel: "आप क्या हासिल करना चाहते हैं?",
-      goalPlaceholder: "उदाहरण: छात्र पोर्टफोलियो वेबसाइट की योजना बनाएँ…",
-      goalButton: "योजना बनाएँ ✦",
-      creatorTitle: "वेबसाइट निर्माता",
-      creatorDescription: "अपना विचार बताएँ और फ्रंटएंड, बैकएंड कोड तथा डिप्लॉयमेंट निर्देश पाएँ।",
-      ideaLabel: "अपनी वेबसाइट या प्रोजेक्ट का विचार बताएँ",
-      ideaPlaceholder: "वेबसाइट, सुविधाएँ, डिज़ाइन, फ्रंटएंड, बैकएंड और डेटाबेस बताएँ…",
-      creatorButton: "प्रोजेक्ट बनाएँ ✦",
-      creatorDisclaimer: "AI कोड और डिप्लॉयमेंट निर्देश देता है। यह वेबसाइट को अपने आप प्रकाशित नहीं करता।",
-      feedbackTitle: "अपनी प्रतिक्रिया दें",
-      feedbackDescription: "Kooksy AI के बारे में अपना अनुभव बताएँ।",
-      name: "नाम",
-      role: "भूमिका",
-      state: "राज्य",
-      rating: "स्टार रेटिंग",
-      feedbackLabel: "प्रतिक्रिया",
-      feedbackPlaceholder: "क्या अच्छा रहा? क्या बेहतर हो सकता है?",
-      submitFeedback: "प्रतिक्रिया भेजें",
-      loading: "कृपया प्रतीक्षा करें…",
-      listening: "सुन रहा है… बोलें।",
-      emptyMessage: "कृपया पहले संदेश लिखें।",
-      fileTooLarge: "फ़ाइल 10 MB की सीमा से बड़ी है।",
-      invalidFile: "यह फ़ाइल प्रकार समर्थित नहीं है।",
-      fileSelected: "फ़ाइल चुनी गई",
-      analyzing: "फ़ाइल का विश्लेषण हो रहा है…",
-      fileSuccess: "फ़ाइल विश्लेषण पूरा हुआ।",
-      chatFailed: "AI उत्तर नहीं मिल पाया। फिर कोशिश करें।",
-      goalFailed: "योजना नहीं बन पाई। फिर कोशिश करें।",
-      creatorFailed: "प्रोजेक्ट नहीं बन पाया। फिर कोशिश करें।",
-      feedbackSuccess: "धन्यवाद! आपकी प्रतिक्रिया भेज दी गई।",
-      feedbackFailed: "प्रतिक्रिया नहीं भेजी जा सकी। फिर कोशिश करें।",
-      chooseRating: "कृपया स्टार रेटिंग चुनें।",
-      historyFailed: "चैट इतिहास लोड नहीं हो सका।",
-      historyDelete: "हटाएँ",
-      historyOpen: "खोलें",
-      confirmDelete: "क्या यह बातचीत हटानी है?",
-      deleteFailed: "बातचीत हटाई नहीं जा सकी।",
-      deleteSuccess: "बातचीत हटा दी गई।",
-      copied: "कॉपी हो गया।",
-      copyFailed: "टेक्स्ट कॉपी नहीं हो सका।",
-      networkError: "नेटवर्क त्रुटि। कनेक्शन जाँचकर फिर कोशिश करें।",
-      user: "आप",
+      assistant: "AI à¤¸à¤¹à¤¾à¤¯à¤•",
+      history: "à¤ªà¥à¤°à¤¾à¤¨à¥€ à¤¬à¤¾à¤¤à¤šà¥€à¤¤",
+      goal: "à¤²à¤•à¥à¤·à¥à¤¯ à¤¯à¥‹à¤œà¤¨à¤¾",
+      creator: "à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ à¤¨à¤¿à¤°à¥à¤®à¤¾à¤¤à¤¾",
+      feedback: "à¤ªà¥à¤°à¤¤à¤¿à¤•à¥à¤°à¤¿à¤¯à¤¾",
+      newChat: "ï¼‹ à¤¨à¤ˆ à¤šà¥ˆà¤Ÿ",
+      send: "à¤­à¥‡à¤œà¥‡à¤‚ â†‘",
+      logout: "à¤²à¥‰à¤— à¤†à¤‰à¤Ÿ",
+      welcomeTitle: "à¤¬à¥à¤¦à¥à¤§à¤¿à¤®à¤¤à¥à¤¤à¤¾ à¤•à¥€ à¤à¤• à¤¨à¤ˆ à¤šà¤®à¤•à¥¤",
+      welcomeText: "à¤¸à¤µà¤¾à¤² à¤ªà¥‚à¤›à¥‡à¤‚, à¤¬à¤¾à¤¤à¤šà¥€à¤¤ à¤œà¤¾à¤°à¥€ à¤°à¤–à¥‡à¤‚, à¤«à¤¼à¤¾à¤‡à¤² à¤•à¤¾ à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£ à¤•à¤°à¥‡à¤‚ à¤¯à¤¾ à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ à¤¬à¤¨à¤¾à¤à¤à¥¤",
+      welcomeEyebrow: "KOOKSY AI Â· à¤†à¤ªà¤•à¤¾ AI à¤•à¤¾à¤°à¥à¤¯à¤•à¥à¤·à¥‡à¤¤à¥à¤°",
+      prompt: "Kooksy AI à¤•à¥‹ à¤¸à¤‚à¤¦à¥‡à¤¶ à¤­à¥‡à¤œà¥‡à¤‚â€¦",
+      upload: "ï¼‹ à¤«à¤¼à¤¾à¤‡à¤² à¤•à¤¾ à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£",
+      suggestions: ["AI à¤•à¥‹ à¤†à¤¸à¤¾à¤¨ à¤­à¤¾à¤·à¤¾ à¤®à¥‡à¤‚ à¤¸à¤®à¤à¤¾à¤à¤", "à¤ªà¥à¤°à¥‹à¤œà¥‡à¤•à¥à¤Ÿ à¤•à¥€ à¤¯à¥‹à¤œà¤¨à¤¾ à¤¬à¤¨à¤¾à¤à¤", "Python à¤•à¥‹à¤¡ à¤²à¤¿à¤–à¥‡à¤‚ à¤”à¤° à¤¸à¤®à¤à¤¾à¤à¤"],
+      historyTitle: "à¤ªà¥à¤°à¤¾à¤¨à¥€ à¤¬à¤¾à¤¤à¤šà¥€à¤¤",
+      historyDescription: "à¤ªà¥à¤°à¤¾à¤¨à¥€ à¤¬à¤¾à¤¤à¤šà¥€à¤¤ à¤–à¥‹à¤²à¥‡à¤‚ à¤¯à¤¾ à¤¹à¤Ÿà¤¾à¤à¤à¥¤",
+      historyLoading: "à¤¬à¤¾à¤¤à¤šà¥€à¤¤ à¤²à¥‹à¤¡ à¤¹à¥‹ à¤°à¤¹à¥€ à¤¹à¥ˆâ€¦",
+      noHistory: "à¤…à¤­à¥€ à¤•à¥‹à¤ˆ à¤¸à¥‡à¤µ à¤•à¥€ à¤—à¤ˆ à¤¬à¤¾à¤¤à¤šà¥€à¤¤ à¤¨à¤¹à¥€à¤‚ à¤¹à¥ˆà¥¤",
+      goalTitle: "à¤²à¤•à¥à¤·à¥à¤¯ à¤•à¥‹ à¤¯à¥‹à¤œà¤¨à¤¾ à¤®à¥‡à¤‚ à¤¬à¤¦à¤²à¥‡à¤‚",
+      goalDescription: "à¤•à¤¾à¤°à¥à¤¯ à¤¬à¤¤à¤¾à¤à¤à¥¤ AI à¤šà¤°à¤£, à¤¸à¤«à¤²à¤¤à¤¾ à¤•à¥‡ à¤®à¤¾à¤¨à¤¦à¤‚à¤¡, à¤œà¥‹à¤–à¤¿à¤® à¤”à¤° à¤¸à¥€à¤®à¤¾à¤à¤ à¤¬à¤¤à¤¾à¤à¤—à¤¾à¥¤",
+      goalLabel: "à¤†à¤ª à¤•à¥à¤¯à¤¾ à¤¹à¤¾à¤¸à¤¿à¤² à¤•à¤°à¤¨à¤¾ à¤šà¤¾à¤¹à¤¤à¥‡ à¤¹à¥ˆà¤‚?",
+      goalPlaceholder: "à¤‰à¤¦à¤¾à¤¹à¤°à¤£: à¤›à¤¾à¤¤à¥à¤° à¤ªà¥‹à¤°à¥à¤Ÿà¤«à¥‹à¤²à¤¿à¤¯à¥‹ à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ à¤•à¥€ à¤¯à¥‹à¤œà¤¨à¤¾ à¤¬à¤¨à¤¾à¤à¤â€¦",
+      goalButton: "à¤¯à¥‹à¤œà¤¨à¤¾ à¤¬à¤¨à¤¾à¤à¤ âœ¦",
+      creatorTitle: "à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ à¤¨à¤¿à¤°à¥à¤®à¤¾à¤¤à¤¾",
+      creatorDescription: "à¤…à¤ªà¤¨à¤¾ à¤µà¤¿à¤šà¤¾à¤° à¤¬à¤¤à¤¾à¤à¤ à¤”à¤° à¤«à¥à¤°à¤‚à¤Ÿà¤à¤‚à¤¡, à¤¬à¥ˆà¤•à¤à¤‚à¤¡ à¤•à¥‹à¤¡ à¤¤à¤¥à¤¾ à¤¡à¤¿à¤ªà¥à¤²à¥‰à¤¯à¤®à¥‡à¤‚à¤Ÿ à¤¨à¤¿à¤°à¥à¤¦à¥‡à¤¶ à¤ªà¤¾à¤à¤à¥¤",
+      ideaLabel: "à¤…à¤ªà¤¨à¥€ à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ à¤¯à¤¾ à¤ªà¥à¤°à¥‹à¤œà¥‡à¤•à¥à¤Ÿ à¤•à¤¾ à¤µà¤¿à¤šà¤¾à¤° à¤¬à¤¤à¤¾à¤à¤",
+      ideaPlaceholder: "à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ, à¤¸à¥à¤µà¤¿à¤§à¤¾à¤à¤, à¤¡à¤¿à¤œà¤¼à¤¾à¤‡à¤¨, à¤«à¥à¤°à¤‚à¤Ÿà¤à¤‚à¤¡, à¤¬à¥ˆà¤•à¤à¤‚à¤¡ à¤”à¤° à¤¡à¥‡à¤Ÿà¤¾à¤¬à¥‡à¤¸ à¤¬à¤¤à¤¾à¤à¤â€¦",
+      creatorButton: "à¤ªà¥à¤°à¥‹à¤œà¥‡à¤•à¥à¤Ÿ à¤¬à¤¨à¤¾à¤à¤ âœ¦",
+      creatorDisclaimer: "AI à¤•à¥‹à¤¡ à¤”à¤° à¤¡à¤¿à¤ªà¥à¤²à¥‰à¤¯à¤®à¥‡à¤‚à¤Ÿ à¤¨à¤¿à¤°à¥à¤¦à¥‡à¤¶ à¤¦à¥‡à¤¤à¤¾ à¤¹à¥ˆà¥¤ à¤¯à¤¹ à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ à¤•à¥‹ à¤…à¤ªà¤¨à¥‡ à¤†à¤ª à¤ªà¥à¤°à¤•à¤¾à¤¶à¤¿à¤¤ à¤¨à¤¹à¥€à¤‚ à¤•à¤°à¤¤à¤¾à¥¤",
+      feedbackTitle: "à¤…à¤ªà¤¨à¥€ à¤ªà¥à¤°à¤¤à¤¿à¤•à¥à¤°à¤¿à¤¯à¤¾ à¤¦à¥‡à¤‚",
+      feedbackDescription: "Kooksy AI à¤•à¥‡ à¤¬à¤¾à¤°à¥‡ à¤®à¥‡à¤‚ à¤…à¤ªà¤¨à¤¾ à¤…à¤¨à¥à¤­à¤µ à¤¬à¤¤à¤¾à¤à¤à¥¤",
+      name: "à¤¨à¤¾à¤®",
+      role: "à¤­à¥‚à¤®à¤¿à¤•à¤¾",
+      state: "à¤°à¤¾à¤œà¥à¤¯",
+      rating: "à¤¸à¥à¤Ÿà¤¾à¤° à¤°à¥‡à¤Ÿà¤¿à¤‚à¤—",
+      feedbackLabel: "à¤ªà¥à¤°à¤¤à¤¿à¤•à¥à¤°à¤¿à¤¯à¤¾",
+      feedbackPlaceholder: "à¤•à¥à¤¯à¤¾ à¤…à¤šà¥à¤›à¤¾ à¤°à¤¹à¤¾? à¤•à¥à¤¯à¤¾ à¤¬à¥‡à¤¹à¤¤à¤° à¤¹à¥‹ à¤¸à¤•à¤¤à¤¾ à¤¹à¥ˆ?",
+      submitFeedback: "à¤ªà¥à¤°à¤¤à¤¿à¤•à¥à¤°à¤¿à¤¯à¤¾ à¤­à¥‡à¤œà¥‡à¤‚",
+      loading: "à¤•à¥ƒà¤ªà¤¯à¤¾ à¤ªà¥à¤°à¤¤à¥€à¤•à¥à¤·à¤¾ à¤•à¤°à¥‡à¤‚â€¦",
+      listening: "à¤¸à¥à¤¨ à¤°à¤¹à¤¾ à¤¹à¥ˆâ€¦ à¤¬à¥‹à¤²à¥‡à¤‚à¥¤",
+      emptyMessage: "à¤•à¥ƒà¤ªà¤¯à¤¾ à¤ªà¤¹à¤²à¥‡ à¤¸à¤‚à¤¦à¥‡à¤¶ à¤²à¤¿à¤–à¥‡à¤‚à¥¤",
+      fileTooLarge: "à¤«à¤¼à¤¾à¤‡à¤² 10 MB à¤•à¥€ à¤¸à¥€à¤®à¤¾ à¤¸à¥‡ à¤¬à¤¡à¤¼à¥€ à¤¹à¥ˆà¥¤",
+      invalidFile: "à¤¯à¤¹ à¤«à¤¼à¤¾à¤‡à¤² à¤ªà¥à¤°à¤•à¤¾à¤° à¤¸à¤®à¤°à¥à¤¥à¤¿à¤¤ à¤¨à¤¹à¥€à¤‚ à¤¹à¥ˆà¥¤",
+      fileSelected: "à¤«à¤¼à¤¾à¤‡à¤² à¤šà¥à¤¨à¥€ à¤—à¤ˆ",
+      analyzing: "à¤«à¤¼à¤¾à¤‡à¤² à¤•à¤¾ à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£ à¤¹à¥‹ à¤°à¤¹à¤¾ à¤¹à¥ˆâ€¦",
+      fileSuccess: "à¤«à¤¼à¤¾à¤‡à¤² à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£ à¤ªà¥‚à¤°à¤¾ à¤¹à¥à¤†à¥¤",
+      chatFailed: "AI à¤‰à¤¤à¥à¤¤à¤° à¤¨à¤¹à¥€à¤‚ à¤®à¤¿à¤² à¤ªà¤¾à¤¯à¤¾à¥¤ à¤«à¤¿à¤° à¤•à¥‹à¤¶à¤¿à¤¶ à¤•à¤°à¥‡à¤‚à¥¤",
+      goalFailed: "à¤¯à¥‹à¤œà¤¨à¤¾ à¤¨à¤¹à¥€à¤‚ à¤¬à¤¨ à¤ªà¤¾à¤ˆà¥¤ à¤«à¤¿à¤° à¤•à¥‹à¤¶à¤¿à¤¶ à¤•à¤°à¥‡à¤‚à¥¤",
+      creatorFailed: "à¤ªà¥à¤°à¥‹à¤œà¥‡à¤•à¥à¤Ÿ à¤¨à¤¹à¥€à¤‚ à¤¬à¤¨ à¤ªà¤¾à¤¯à¤¾à¥¤ à¤«à¤¿à¤° à¤•à¥‹à¤¶à¤¿à¤¶ à¤•à¤°à¥‡à¤‚à¥¤",
+      feedbackSuccess: "à¤§à¤¨à¥à¤¯à¤µà¤¾à¤¦! à¤†à¤ªà¤•à¥€ à¤ªà¥à¤°à¤¤à¤¿à¤•à¥à¤°à¤¿à¤¯à¤¾ à¤­à¥‡à¤œ à¤¦à¥€ à¤—à¤ˆà¥¤",
+      feedbackFailed: "à¤ªà¥à¤°à¤¤à¤¿à¤•à¥à¤°à¤¿à¤¯à¤¾ à¤¨à¤¹à¥€à¤‚ à¤­à¥‡à¤œà¥€ à¤œà¤¾ à¤¸à¤•à¥€à¥¤ à¤«à¤¿à¤° à¤•à¥‹à¤¶à¤¿à¤¶ à¤•à¤°à¥‡à¤‚à¥¤",
+      chooseRating: "à¤•à¥ƒà¤ªà¤¯à¤¾ à¤¸à¥à¤Ÿà¤¾à¤° à¤°à¥‡à¤Ÿà¤¿à¤‚à¤— à¤šà¥à¤¨à¥‡à¤‚à¥¤",
+      historyFailed: "à¤šà¥ˆà¤Ÿ à¤‡à¤¤à¤¿à¤¹à¤¾à¤¸ à¤²à¥‹à¤¡ à¤¨à¤¹à¥€à¤‚ à¤¹à¥‹ à¤¸à¤•à¤¾à¥¤",
+      historyDelete: "à¤¹à¤Ÿà¤¾à¤à¤",
+      historyOpen: "à¤–à¥‹à¤²à¥‡à¤‚",
+      confirmDelete: "à¤•à¥à¤¯à¤¾ à¤¯à¤¹ à¤¬à¤¾à¤¤à¤šà¥€à¤¤ à¤¹à¤Ÿà¤¾à¤¨à¥€ à¤¹à¥ˆ?",
+      deleteFailed: "à¤¬à¤¾à¤¤à¤šà¥€à¤¤ à¤¹à¤Ÿà¤¾à¤ˆ à¤¨à¤¹à¥€à¤‚ à¤œà¤¾ à¤¸à¤•à¥€à¥¤",
+      deleteSuccess: "à¤¬à¤¾à¤¤à¤šà¥€à¤¤ à¤¹à¤Ÿà¤¾ à¤¦à¥€ à¤—à¤ˆà¥¤",
+      copied: "à¤•à¥‰à¤ªà¥€ à¤¹à¥‹ à¤—à¤¯à¤¾à¥¤",
+      copyFailed: "à¤Ÿà¥‡à¤•à¥à¤¸à¥à¤Ÿ à¤•à¥‰à¤ªà¥€ à¤¨à¤¹à¥€à¤‚ à¤¹à¥‹ à¤¸à¤•à¤¾à¥¤",
+      networkError: "à¤¨à¥‡à¤Ÿà¤µà¤°à¥à¤• à¤¤à¥à¤°à¥à¤Ÿà¤¿à¥¤ à¤•à¤¨à¥‡à¤•à¥à¤¶à¤¨ à¤œà¤¾à¤à¤šà¤•à¤° à¤«à¤¿à¤° à¤•à¥‹à¤¶à¤¿à¤¶ à¤•à¤°à¥‡à¤‚à¥¤",
+      user: "à¤†à¤ª",
       ai: "Kooksy AI",
-      emptyGoal: "कृपया अपना लक्ष्य बताएँ।",
-      emptyIdea: "कृपया वेबसाइट का विचार बताएँ।",
-      emptyFeedback: "कृपया अपनी प्रतिक्रिया लिखें।"
+      emptyGoal: "à¤•à¥ƒà¤ªà¤¯à¤¾ à¤…à¤ªà¤¨à¤¾ à¤²à¤•à¥à¤·à¥à¤¯ à¤¬à¤¤à¤¾à¤à¤à¥¤",
+      emptyIdea: "à¤•à¥ƒà¤ªà¤¯à¤¾ à¤µà¥‡à¤¬à¤¸à¤¾à¤‡à¤Ÿ à¤•à¤¾ à¤µà¤¿à¤šà¤¾à¤° à¤¬à¤¤à¤¾à¤à¤à¥¤",
+      emptyFeedback: "à¤•à¥ƒà¤ªà¤¯à¤¾ à¤…à¤ªà¤¨à¥€ à¤ªà¥à¤°à¤¤à¤¿à¤•à¥à¤°à¤¿à¤¯à¤¾ à¤²à¤¿à¤–à¥‡à¤‚à¥¤"
     },
 
     es: {
@@ -288,63 +288,63 @@
       goal: "Objetivo del agente",
       creator: "Creador de sitios web",
       feedback: "Comentarios",
-      newChat: "＋ Nuevo chat",
-      send: "Enviar ↑",
-      logout: "Cerrar sesión",
+      newChat: "ï¼‹ Nuevo chat",
+      send: "Enviar â†‘",
+      logout: "Cerrar sesiÃ³n",
       welcomeTitle: "Inteligencia con chispa.",
-      welcomeText: "Haz preguntas, continúa conversaciones, analiza archivos o convierte ideas en proyectos web.",
-      welcomeEyebrow: "KOOKSY AI · TU ESPACIO DE IA",
-      prompt: "Escribe a Kooksy AI…",
-      upload: "＋ Analizar un archivo",
-      suggestions: ["Explica la IA de forma sencilla", "Ayúdame a planificar un proyecto", "Escribe y explica código Python"],
+      welcomeText: "Haz preguntas, continÃºa conversaciones, analiza archivos o convierte ideas en proyectos web.",
+      welcomeEyebrow: "KOOKSY AI Â· TU ESPACIO DE IA",
+      prompt: "Escribe a Kooksy AIâ€¦",
+      upload: "ï¼‹ Analizar un archivo",
+      suggestions: ["Explica la IA de forma sencilla", "AyÃºdame a planificar un proyecto", "Escribe y explica cÃ³digo Python"],
       historyTitle: "Historial de conversaciones",
-      historyDescription: "Abre una conversación anterior o elimina las que ya no necesites.",
-      historyLoading: "Cargando conversaciones…",
-      noHistory: "Todavía no hay conversaciones guardadas.",
+      historyDescription: "Abre una conversaciÃ³n anterior o elimina las que ya no necesites.",
+      historyLoading: "Cargando conversacionesâ€¦",
+      noHistory: "TodavÃ­a no hay conversaciones guardadas.",
       goalTitle: "Convierte un objetivo en un plan",
-      goalDescription: "Describe una tarea para obtener pasos, criterios de éxito, riesgos y limitaciones.",
-      goalLabel: "¿Qué quieres conseguir?",
-      goalPlaceholder: "Ejemplo: planifica un sitio web de portafolio para estudiantes…",
-      goalButton: "Generar plan ✦",
+      goalDescription: "Describe una tarea para obtener pasos, criterios de Ã©xito, riesgos y limitaciones.",
+      goalLabel: "Â¿QuÃ© quieres conseguir?",
+      goalPlaceholder: "Ejemplo: planifica un sitio web de portafolio para estudiantesâ€¦",
+      goalButton: "Generar plan âœ¦",
       creatorTitle: "Creador de sitios web",
-      creatorDescription: "Describe tu idea para generar código frontend, backend e instrucciones de implementación.",
+      creatorDescription: "Describe tu idea para generar cÃ³digo frontend, backend e instrucciones de implementaciÃ³n.",
       ideaLabel: "Describe tu sitio web o proyecto",
-      ideaPlaceholder: "Describe las funciones, el diseño, el frontend, el backend y la base de datos…",
-      creatorButton: "Generar proyecto ✦",
-      creatorDisclaimer: "La IA genera código e instrucciones; no publica el sitio automáticamente. Prueba el código antes de usarlo.",
+      ideaPlaceholder: "Describe las funciones, el diseÃ±o, el frontend, el backend y la base de datosâ€¦",
+      creatorButton: "Generar proyecto âœ¦",
+      creatorDisclaimer: "La IA genera cÃ³digo e instrucciones; no publica el sitio automÃ¡ticamente. Prueba el cÃ³digo antes de usarlo.",
       feedbackTitle: "Comparte tus comentarios",
-      feedbackDescription: "Cuéntanos tu experiencia con Kooksy AI.",
+      feedbackDescription: "CuÃ©ntanos tu experiencia con Kooksy AI.",
       name: "Nombre",
       role: "Rol",
       state: "Estado",
-      rating: "Calificación por estrellas",
+      rating: "CalificaciÃ³n por estrellas",
       feedbackLabel: "Comentarios",
-      feedbackPlaceholder: "¿Qué funcionó bien? ¿Qué podría mejorar?",
+      feedbackPlaceholder: "Â¿QuÃ© funcionÃ³ bien? Â¿QuÃ© podrÃ­a mejorar?",
       submitFeedback: "Enviar comentarios",
-      loading: "Espera, por favor…",
-      listening: "Escuchando… Habla ahora.",
+      loading: "Espera, por favorâ€¦",
+      listening: "Escuchandoâ€¦ Habla ahora.",
       emptyMessage: "Escribe un mensaje primero.",
-      fileTooLarge: "El archivo supera el límite de 10 MB.",
+      fileTooLarge: "El archivo supera el lÃ­mite de 10 MB.",
       invalidFile: "Este tipo de archivo no es compatible.",
       fileSelected: "Archivo seleccionado",
-      analyzing: "Analizando archivo…",
-      fileSuccess: "Análisis del archivo completado.",
-      chatFailed: "No se pudo obtener una respuesta de IA. Inténtalo de nuevo.",
-      goalFailed: "No se pudo generar el plan. Inténtalo de nuevo.",
-      creatorFailed: "No se pudo generar el proyecto. Inténtalo de nuevo.",
-      feedbackSuccess: "¡Gracias! Se enviaron tus comentarios.",
+      analyzing: "Analizando archivoâ€¦",
+      fileSuccess: "AnÃ¡lisis del archivo completado.",
+      chatFailed: "No se pudo obtener una respuesta de IA. IntÃ©ntalo de nuevo.",
+      goalFailed: "No se pudo generar el plan. IntÃ©ntalo de nuevo.",
+      creatorFailed: "No se pudo generar el proyecto. IntÃ©ntalo de nuevo.",
+      feedbackSuccess: "Â¡Gracias! Se enviaron tus comentarios.",
       feedbackFailed: "No se pudieron enviar los comentarios.",
-      chooseRating: "Selecciona una calificación.",
+      chooseRating: "Selecciona una calificaciÃ³n.",
       historyFailed: "No se pudo cargar el historial.",
       historyDelete: "Eliminar",
       historyOpen: "Abrir",
-      confirmDelete: "¿Eliminar esta conversación?",
-      deleteFailed: "No se pudo eliminar la conversación.",
-      deleteSuccess: "Conversación eliminada.",
+      confirmDelete: "Â¿Eliminar esta conversaciÃ³n?",
+      deleteFailed: "No se pudo eliminar la conversaciÃ³n.",
+      deleteSuccess: "ConversaciÃ³n eliminada.",
       copied: "Copiado al portapapeles.",
       copyFailed: "No se pudo copiar el texto.",
-      networkError: "Error de red. Comprueba tu conexión e inténtalo de nuevo.",
-      user: "Tú",
+      networkError: "Error de red. Comprueba tu conexiÃ³n e intÃ©ntalo de nuevo.",
+      user: "TÃº",
       ai: "Kooksy AI",
       emptyGoal: "Describe tu objetivo.",
       emptyIdea: "Describe tu idea para el sitio web.",
@@ -506,20 +506,20 @@
 
   const languageNames = {
     en: "English",
-    "zh-CN": "中文",
-    hi: "हिन्दी",
-    es: "Español",
-    ar: "العربية",
-    fr: "Français",
-    bn: "বাংলা",
-    pt: "Português",
-    ru: "Русский",
-    ur: "اردو",
-    ja: "日本語",
+    "zh-CN": "ä¸­æ–‡",
+    hi: "à¤¹à¤¿à¤¨à¥à¤¦à¥€",
+    es: "EspaÃ±ol",
+    ar: "Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©",
+    fr: "FranÃ§ais",
+    bn: "à¦¬à¦¾à¦‚à¦²à¦¾",
+    pt: "PortuguÃªs",
+    ru: "Ð ÑƒÑÑÐºÐ¸Ð¹",
+    ur: "Ø§Ø±Ø¯Ùˆ",
+    ja: "æ—¥æœ¬èªž",
     de: "Deutsch",
-    ta: "தமிழ்",
-    te: "తెలుగు",
-    ko: "한국어"
+    ta: "à®¤à®®à®¿à®´à¯",
+    te: "à°¤à±†à°²à±à°—à±",
+    ko: "í•œêµ­ì–´"
   };
 
   function applyLanguage(language) {
@@ -1303,94 +1303,191 @@ function getWebsiteFiles(result) {
   return {};
 }
 
+
 function showWebsiteFiles(files) {
-  studioState.files = files;
-  const list = getFirstElement([
-    "creatorFiles", "websiteFiles", "creator-files"
-  ]);
+  studioState.files = {};
 
-  if (list) {
-    list.replaceChildren();
+  const select = $("creatorFileSelect");
+  const workspace = $("creatorWorkspace");
 
-    Object.entries(files).forEach(([filename, content]) => {
-      const row = document.createElement("div");
-      row.className = "creator-file-row";
+  // Accept only safe filenames and string file contents.
+  for (const [name, content] of Object.entries(files || {})) {
+   const safeName = String(name).replace(/\\/g, "/");
 
-      const name = document.createElement("span");
-      name.textContent = filename;
+    if (
+      !safeName ||
+      safeName.startsWith("/") ||
+      safeName.split("/").includes("..") ||
+      typeof content !== "string"
+    ) {
+      continue;
+    }
 
-      const copyButton = document.createElement("button");
-      copyButton.type = "button";
-      copyButton.textContent = "Copy";
-      copyButton.addEventListener("click", () => copyText(content));
-
-      const downloadButton = document.createElement("button");
-      downloadButton.type = "button";
-      downloadButton.textContent = "Download";
-      downloadButton.addEventListener("click", () => {
-        downloadStudioFile(filename, content);
-      });
-
-      row.append(name, copyButton, downloadButton);
-      list.appendChild(row);
-    });
+    studioState.files[safeName] = content;
   }
 
-  const select = getFirstElement([
-    "creatorFileSelect", "websiteFileSelect"
-  ]);
+  const names = Object.keys(studioState.files);
+
+  if (!names.length) {
+    if (workspace) workspace.hidden = true;
+
+    notify(
+      "The server returned no usable website files.",
+      "warning"
+    );
+    return;
+  }
+
+  if (workspace) {
+    workspace.hidden = false;
+  }
+
+  const firstFile = names.includes("index.html")
+    ? "index.html"
+    : names[0];
+
+  studioState.activeFile = firstFile;
 
   if (select) {
     select.replaceChildren();
 
-    Object.keys(files).forEach((filename) => {
+    names.forEach((filename) => {
       const option = document.createElement("option");
       option.value = filename;
       option.textContent = filename;
       select.appendChild(option);
     });
+
+    select.value = firstFile;
   }
+
+  const editor = $("creatorCodeEditor");
+
+  if (editor) {
+    editor.value = studioState.files[firstFile] || "";
+  }
+
+  const techStack = $("creatorTechStack");
+
+  if (techStack) {
+    techStack.textContent = "Files: " + names.join(", ");
+  }
+
+  buildWebsitePreview(studioState.files);
 }
 
 function buildWebsitePreview(files) {
-  const html = files["index.html"] || files["index.htm"] || "";
-  const css = files["style.css"] || files["styles.css"] || "";
-  const js = files["script.js"] || files["app.js"] || "";
+  const iframe = $("creatorPreview");
 
-  // Keep generated HTML inside a sandboxed iframe.
-  // External resources and scripts should be reviewed before use.
-  const iframe = getFirstElement([
-    "creatorPreview", "websitePreview", "creator-preview"
-  ]);
-
-  if (iframe && iframe.tagName === "IFRAME") {
-    const escapedCSS = css.replace(/<\/style/gi, "<\\/style");
-    const escapedJS = js.replace(/<\/script/gi, "<\\/script");
-
-    let preview = html;
-
-    if (/<\/head>/i.test(preview)) {
-      preview = preview.replace(
-        /<\/head>/i,
-        `<style>${escapedCSS}</style></head>`
-      );
-    } else {
-      preview = `<style>${escapedCSS}</style>${preview}`;
-    }
-
-    if (/<\/body>/i.test(preview)) {
-      preview = preview.replace(
-        /<\/body>/i,
-        `<script>${escapedJS}<\/script></body>`
-      );
-    } else {
-      preview += `<script>${escapedJS}<\/script>`;
-    }
-
-    iframe.setAttribute("sandbox", "allow-scripts");
-    iframe.srcdoc = preview;
+  if (!iframe) {
+    console.warn("Website preview iframe not found: creatorPreview");
+    return;
   }
+
+  const fileMap = files || {};
+
+  const htmlFile =
+    fileMap["index.html"] ||
+    fileMap["index.htm"] ||
+    "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1.0'><title>Website Preview</title></head><body><h1>Website Preview</h1><p>No index.html file was found.</p></body></html>";
+
+  const cssFile =
+    fileMap["style.css"] ||
+    fileMap["styles.css"] ||
+    "";
+
+  const jsFile =
+    fileMap["app.js"] ||
+    fileMap["script.js"] ||
+    "";
+
+  let previewHTML = htmlFile;
+
+  // Add CSS to the generated HTML.
+  if (cssFile.trim()) {
+    const styleTag = "<style>\n" + cssFile + "\n</style>";
+
+    if (/<\/head>/i.test(previewHTML)) {
+      previewHTML = previewHTML.replace(
+        /<\/head>/i,
+        styleTag + "\n</head>"
+      );
+    } else {
+      previewHTML = styleTag + "\n" + previewHTML;
+    }
+  }
+
+  // Add JavaScript before the closing body tag.
+  if (jsFile.trim()) {
+    const scriptTag =
+      "<script>\n" +
+      jsFile.replace(/<\/script/gi, "<\\/script") +
+      "\n</scr" + "ipt>";
+
+    if (/<\/body>/i.test(previewHTML)) {
+      previewHTML = previewHTML.replace(
+        /<\/body>/i,
+        scriptTag + "\n</body>"
+      );
+    } else {
+      previewHTML += "\n" + scriptTag;
+    }
+  }
+
+  iframe.srcdoc = previewHTML;
 }
+
+
+  // Safely encode generated source before placing it inside srcdoc.
+  const safeString = (value) =>
+    JSON.stringify(value).replace(/</g, "\\u003c");
+
+  let preview = html;
+
+  // Remove external generated-file references; inject local generated CSS/JS.
+  preview = preview.replace(
+    /<link\b[^>]*href\s*=\s*["'][^"']*(?:style\.css|styles\.css)[^"']*["'][^>]*>/gi,
+    ""
+  );
+
+  preview = preview.replace(
+    /<script\b[^>]*src\s*=\s*["'][^"']*(?:app\.js|script\.js)[^"']*["'][^>]*>\s*<\/script>/gi,
+    ""
+  );
+
+  const injection = `
+    <script>
+      (() => {
+        const css = ${safeString(css)};
+        const code = ${safeString(js)};
+
+        const style = document.createElement("style");
+        style.textContent = css;
+        document.head.appendChild(style);
+
+        window.addEventListener("DOMContentLoaded", () => {
+          try {
+            const script = document.createElement("script");
+            script.textContent = code;
+            document.body.appendChild(script);
+          } catch (error) {
+            console.error("Generated website JavaScript failed:", error);
+          }
+        });
+      })();
+    <\/script>
+  `;
+
+  if (/<\/body\s*>/i.test(preview)) {
+    preview = preview.replace(/<\/body\s*>/i, `${injection}</body>`);
+  } else {
+    preview += injection;
+  }
+
+  iframe.setAttribute("sandbox", "allow-scripts");
+  iframe.srcdoc = preview;
+}
+
 
 async function generateWebsite() {
   const idea = getStudioValue([
@@ -1406,13 +1503,20 @@ async function generateWebsite() {
 
   try {
     const result = await postJSON(API.creator, {
-      idea,
-      prompt: idea,
-      language: state.language,
-      output_format: "files",
-      required_files: ["index.html", "style.css", "script.js"],
-      responsive: true
-    });
+  idea,
+  prompt: idea,
+  language: state.language
+});
+
+const files = getWebsiteFiles(result);
+
+if (!files || Object.keys(files).length === 0) {
+  throw new Error(
+    result?.error || "No website files returned by the server."
+  );
+}
+
+showWebsiteFiles(files);
 
     const files = getWebsiteFiles(result);
 
@@ -1824,3 +1928,4 @@ function bindCreatorStudioEvents() {
   });
 
 })();
+
