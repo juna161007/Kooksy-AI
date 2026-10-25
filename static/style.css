@@ -2154,3 +2154,182 @@ button.loading::after {
     font-size: 11px;
   }
 }
+
+/* =========================================
+   KOOKSY AI — WEBSITE CREATOR FIX
+   ========================================= */
+
+#page-creator .creator-output-panel {
+  width: 100%;
+  min-width: 0;
+  margin-top: 22px;
+  padding: 22px;
+  background: var(--panel, #14151d);
+  border: 1px solid var(--border, rgba(255,255,255,.09));
+  border-radius: var(--radius-md, 16px);
+}
+
+#page-creator .creator-output-panel[hidden] {
+  display: none !important;
+}
+
+#page-creator #creatorTechStack,
+#page-creator #creatorExplanation {
+  overflow-wrap: anywhere;
+}
+
+#page-creator .creator-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 20px;
+}
+
+#page-creator .creator-toolbar button {
+  min-height: 39px;
+}
+
+#page-creator #creatorFileSelect {
+  display: block;
+  width: 100%;
+  max-width: 350px;
+  margin: 8px 0 16px;
+}
+
+#page-creator #creatorCodeEditor {
+  display: block;
+  width: 100%;
+  min-height: 360px;
+  margin: 10px 0 22px;
+  padding: 16px;
+  color: #e2e8f0;
+  background: #090a10;
+  border: 1px solid rgba(167,139,250,.25);
+  border-radius: 12px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  tab-size: 2;
+  white-space: pre;
+  overflow: auto;
+  resize: vertical;
+}
+
+#page-creator #creatorCodeEditor:focus {
+  border-color: var(--primary, #a78bfa);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(167,139,250,.1);
+}
+
+#page-creator #creatorPreview {
+  display: block;
+  width: 100%;
+  min-height: 420px;
+  margin: 12px 0 22px;
+  background: #fff;
+  border: 1px solid var(--border, #30313d);
+  border-radius: 12px;
+}
+
+#page-creator #creatorDeploymentGuide {
+  padding: 16px;
+  color: var(--text-soft, #c5c5d3);
+  background: rgba(103,232,249,.04);
+  border: 1px solid rgba(103,232,249,.14);
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+
+#page-creator #creatorDeploymentGuide ol,
+#page-creator #creatorDeploymentGuide ul {
+  padding-left: 22px;
+}
+
+#page-creator #creatorDeploymentGuide li {
+  margin: 8px 0;
+  line-height: 1.7;
+}
+
+#page-creator #creatorResult {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#page-creator #creatorResult:empty {
+  display: none;
+}
+
+@media (max-width: 650px) {
+  #page-creator .creator-output-panel {
+    padding: 14px;
+  }
+
+  #page-creator .creator-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #page-creator .creator-toolbar button {
+    width: 100%;
+    padding: 9px 7px;
+    font-size: 12px;
+  }
+
+  #page-creator #creatorCodeEditor {
+    min-height: 280px;
+    padding: 11px;
+    font-size: 12px;
+  }
+
+  #page-creator #creatorPreview {
+    min-height: 300px;
+  }
+}
+/* ---------- WEBSITE CREATOR INPUT LAYOUT ---------- */
+
+#page-creator .tool-card {
+  width: min(100%, 1000px);
+}
+
+#ideaInput {
+  width: 100%;
+  min-height: 210px;
+  font-family: inherit;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.creator-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 7px;
+}
+
+.creator-bottom .primary {
+  min-width: 175px;
+}
+
+#page-creator .tool-card > .small {
+  margin-top: 18px;
+}
+
+/* ---------- MOBILE RESPONSIVENESS ---------- */
+
+@media (max-width: 600px) {
+  #page-creator .tool-card {
+    width: 100%;
+  }
+
+  .creator-bottom {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .creator-bottom .primary {
+    width: 100%;
+  }
+}
