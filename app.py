@@ -388,7 +388,8 @@ def index():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-        username = safe_text(request.form.get("username"), 30)
+      password = request.form.get("password", "") 
+      username = safe_text(request.form.get("username"), 30)
 
         if not username or len(username) < 3:
             return auth_page(
@@ -439,14 +440,6 @@ def signup():
                 "Create Account", "signup",
                 "That username is already taken. Please choose another."
             ), 409
-
-
-            return auth_page(
-                "Create Account",
-                "signup",
-                "That username is already taken. Please choose another."
-            ), 409
-
     return auth_page("Create Account", "signup")
 
 
@@ -554,10 +547,18 @@ def logout():
 
 @app.get("/api/session")
 @login_required
+
+@app.get("/api/session")
+@login_required
 def api_session():
-    # KEEP your original api_session() function body here.
-    # Do not leave the function empty.
-    # Return the existing session response used by your frontend.
+    return jsonify({
+        "success": True,
+        "user_id": session.get("user_id"),
+        "username": session.get("username", ""),
+        "language": session.get("language", "en"),
+        "csrf_token": session.get("csrf_token", ""),
+    })
+
 
 # CSRF PROTECTION FOR JSON POST / DELETE REQUESTS
 # ---------------------------------------------------------
@@ -589,7 +590,6 @@ def check_csrf():
         )
 
     return None
-
 
 # ---------------------------------------------------------
 # LANGUAGE PREFERENCE
