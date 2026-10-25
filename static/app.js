@@ -1274,37 +1274,86 @@ async function submitFeedback(event) {
     form.submit();
   }
 
-  /* ---------------- 17. EVENT BINDINGS ---------------- */
+/* ---------------- 17. EVENT BINDINGS ---------------- */
 
-  function bindClick(ids, callback) {
-    ids.forEach((id) => {
-      const element = $(id);
-      if (element) element.addEventListener("click", callback);
+function bindClick(ids, callback) {
+  ids.forEach((id) => {
+    const element = $(id);
+
+    if (element) {
+      element.addEventListener("click", callback);
+    }
+  });
+}
+
+function bindEvents() {
+  const input = getMessageInput();
+
+  // Send message
+  bindClick(
+    ["sendButton", "send-btn", "sendBtn"],
+    () => sendMessage()
+  );
+
+  if (input) {
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
     });
   }
 
-  function bindEvents() {
-    const input = getMessageInput();
+  // Feedback form
+  const feedbackForm = $("feedbackForm") || $("feedback-form");
 
-    bindClick(["sendButton", "send-btn", "sendBtn"], () => sendMessage());
+  if (feedbackForm) {
+    feedbackForm.addEventListener("submit", (event) => {
+      event.preventDefault();
 
-    if (input) {
-      input.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          sendMessage();
-        }
-      });
-    }
+      // Use the existing feedback submission handler if available.
+      if (typeof submitFeedback === "function") {
+        submitFeedback(event);
+      }
+    });
+  }
 
+  // New chat
+  bindClick(
+    ["newChatButton", "new-chat", "newChatBtn"],
+    newChat
+  );
 
-    const feedbackForm = $("feedbackForm") || $("feedback-form");
-    if (feedbackForm) {    bindClick(["newChatButton", "new-chat", "newChatBtn"], newChat);
-    bindClick(["voiceButton", "voice-btn", "micButton"], startVoiceInput);
-    bindClick(["stopSpeakingButton", "stop-speaking"], stopSpeaking);
-    bindClick(["goalBtn", "goalButton", "generateGoalButton"], generateGoal);
-    bindClick(["logoutButton", "logout-btn"], logout);
-    bindClick(["loadHistoryButton", "refreshHistory"], loadHistory);
+  // Voice input
+  bindClick(
+    ["voiceButton", "voice-btn", "micButton"],
+    startVoiceInput
+  );
+
+  // Stop AI speech
+  bindClick(
+    ["stopSpeakingButton", "stop-speaking"],
+    stopSpeaking
+  );
+
+  // Generate goal
+  bindClick(
+    ["goalBtn", "goalButton", "generateGoalButton"],
+    generateGoal
+  );
+
+  // Logout
+  bindClick(
+    ["logoutButton", "logout-btn"],
+    logout
+  );
+
+  // Refresh chat history
+  bindClick(
+    ["loadHistoryButton", "refreshHistory"],
+    loadHistory
+  );
+}
 
     // Website Creator + AI Coding Studio
     bindCreatorStudioEvents();
