@@ -440,6 +440,13 @@ def signup():
                 "That username is already taken. Please choose another."
             ), 409
 
+
+            return auth_page(
+                "Create Account",
+                "signup",
+                "That username is already taken. Please choose another."
+            ), 409
+
     return auth_page("Create Account", "signup")
 
 
@@ -476,7 +483,6 @@ def forgot_password():
                 ).fetchone()
 
                 if not user:
-                    # Avoid revealing whether an account exists.
                     message = (
                         "Details could not be verified. "
                         "Check them and try again."
@@ -549,6 +555,10 @@ def logout():
 @app.get("/api/session")
 @login_required
 def api_session():
+    # KEEP your original api_session() function body here.
+    # Do not leave the function empty.
+    # Return the existing session response used by your frontend.
+
 # CSRF PROTECTION FOR JSON POST / DELETE REQUESTS
 # ---------------------------------------------------------
 
