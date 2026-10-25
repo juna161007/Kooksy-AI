@@ -299,6 +299,7 @@ def clean_chat_history(history):
         return []
 
     cleaned = []
+
     for item in history[-MAX_HISTORY_MESSAGES:]:
         if not isinstance(item, dict):
             continue
@@ -309,9 +310,14 @@ def clean_chat_history(history):
         if (
             role in ("user", "assistant")
             and isinstance(content, str)
-                    message=message
-    )
+            and content.strip()
+        ):
+            cleaned.append({
+                "role": role,
+                "content": content[:4000],
+            })
 
+    return cleaned
 
 @app.route("/")
 def index():
@@ -682,12 +688,35 @@ def chat():
 @app.get("/api/history")
 @login_required
 def history_list():
+    user_id = session["user_id"]
+
     with get_db() as db:
         rows = db.execute(
-            """SELECT c.id, c.title, c.created_at, c.updated_at,
-                      COUNT(m.id) AS message_count
-               FROM conversations c
-                   })
+            """
+            SELECT
+                c.id,
+                c.title,
+                c.created_at,
+                c.updated_at,
+                COUNT(m.id) AS message_count
+            FROM conversations AS c
+            LEFT JOIN messages AS m
+                ON m.conversation_id = c.id
+            WHERE c.user_id = ?
+            GROUP BY
+                c.id,
+                c.title,
+                c.created_at,
+                c.updated_at
+            ORDER BY c.updated_at DESC
+            """,
+            (user_id,),
+        ).fetchall()
+
+    return jsonify({
+        "success": True,
+        "history": [dict(row) for row in rows],
+    })
 
 
 @app.delete("/api/history/<int:conversation_id>")
