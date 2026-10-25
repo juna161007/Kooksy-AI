@@ -220,7 +220,6 @@ def language_instruction(language):
     )
 
 
-
 def call_groq(messages, language="en", temperature=0.4):
     if not GROQ_API_KEY:
         raise RuntimeError(
@@ -233,19 +232,69 @@ def call_groq(messages, language="en", temperature=0.4):
             "You are Kooksy AI, an approachable, helpful AI assistant. "
             "Be accurate, clear, practical, and honest about uncertainty. "
             "Do not claim that you executed code, deployed a website, "
+            "or performed an action unless it actually happened. "
+            "Respond in the user's selected language. "
+            "Do not change the selected language unless the user asks "
+            "for a different language."
+        ),
+    }
+
+    api_messages = [system_message]
+
+    if isinstance(messages, list):
+        for item in messages:
+            if not isinstance(item, dict):
+                continue
+
+            role = item.get("role")
+            content = item.get("content")
+
+            if (
+                role in ("user", "assistant")
+                and isinstance(content, str)
+                and content.strip()
+            ):
+                api_messages.append({
+                    "role": role,
+                    "content": content[:4000],
+                })
+
+    if not any(item["role"] == "user" for item in api_messages):
+        raise RuntimeError("Please enter a message before sending.")
+
+    payload = {
+        "model": GROQ_MODEL,
+        "messages": api_messages,
+        "temperature": temperature,
+    }
+
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    try:
+        response = requests.post(
+            GROQ_API_URL,
+            headers=headers,
+            json=payload,
             timeout=90,
         )
+
         response.raise_for_status()
         data = response.json()
         answer = data["choices"][0]["message"]["content"]
+
         if not isinstance(answer, str) or not answer.strip():
             raise RuntimeError("The AI returned an empty response.")
+
         return answer.strip()
 
     except requests.Timeout as exc:
-        raise RuntimeError("The AI request timed out. Please try again.") from exc
+        raise RuntimeError(
+            "The AI request timed out. Please try again."
+        ) from exc
 
-   
     except requests.HTTPError as exc:
         response = exc.response
         status = response.status_code if response is not None else 0
@@ -256,41 +305,46 @@ def call_groq(messages, language="en", temperature=0.4):
             try:
                 body = response.json()
                 info = body.get("error", {})
+
                 if isinstance(info, dict):
                     error_code = str(info.get("code", ""))
                     error_detail = str(info.get("message", ""))
                 elif isinstance(info, str):
                     error_detail = info
+
             except (ValueError, TypeError):
                 pass
 
-        # Log only the API error details, never request headers or API keys.
-        app.logger.error(
-            "Groq API error: status=%s code=%s detail=%s",
-            status, error_code[:100], error_detail[:300]
-        )
-
-        details = f"{error_code} {error_detail}".lower()
-
+        # Never expose the API key or sensitive request headers.
         if status == 401:
-            message = "Groq authentication failed. Check the API key in Render environment settings."
-        elif status == 429 and any(
-            word in details for word in
-            ("quota", "billing", "credits", "insufficient_quota")
-        ):
-            message = "Groq quota may be exhausted. Check Groq Console usage and limits."
+            message = "Groq authentication failed. Check GROQ_API_KEY."
         elif status == 429:
-            message = "Groq rate or token limit reached. Check Render logs and Groq Console limits."
+            message = "Groq rate limit or quota reached. Please try later."
         else:
-            message = f"Groq request failed (HTTP {status}). Check Render logs."
+            message = f"Groq request failed (HTTP {status}). Please try again."
+
+        # Keep error details out of the client-facing message.
+        app.logger.warning(
+            "Groq HTTP error: status=%s code=%s detail=%s",
+            status,
+            error_code,
+            error_detail[:300],
+        )
 
         raise RuntimeError(message) from exc
 
+    except (ValueError, KeyError, IndexError, TypeError) as exc:
+        app.logger.exception("Invalid response received from Groq.")
+        raise RuntimeError(
+            "The AI returned an invalid response. Please try again."
+        ) from exc
 
-    except (KeyError, IndexError, TypeError, ValueError) as exc:
-        raise RuntimeError("Could not read the AI response.") from exc
     except requests.RequestException as exc:
-        raise RuntimeError("Could not connect to the AI service.") from exc
+        app.logger.warning("Groq network request failed: %s", type(exc).__name__)
+        raise RuntimeError(
+            "Unable to connect to the AI service. Please try again."
+        ) from exc
+
 
 
 def clean_chat_history(history):
