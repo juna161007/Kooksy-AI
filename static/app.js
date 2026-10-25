@@ -1073,7 +1073,8 @@ async function generateWebsite() {
   }
 }
 
- ---------------- 14. FEEDBACK FORM ---------------- 
+
+/* ---------------- 14. FEEDBACK FORM ---------------- */
 
 function updateFeedbackRating(rating, form) {
   if (!form) return;
@@ -1098,19 +1099,16 @@ function updateFeedbackRating(rating, form) {
     ratingDisplay.textContent = `${value}/5`;
   }
 
-  form.querySelectorAll("#stars [data-star], .stars [data-star]").forEach(
-    (star) => {
+  form
+    .querySelectorAll("#stars [data-star], .stars [data-star]")
+    .forEach((star) => {
       const starValue = Number(star.dataset.star);
       const selected = starValue <= value;
 
       star.textContent = selected ? "★" : "☆";
       star.style.color = selected ? "#fbbf24" : "#9ca3af";
-      star.setAttribute(
-        "aria-pressed",
-        String(starValue === value)
-      );
-    }
-  );
+      star.setAttribute("aria-pressed", String(starValue === value));
+    });
 }
 
 function bindFeedbackRating() {
@@ -1127,15 +1125,8 @@ function bindFeedbackRating() {
     "#stars [data-star], .stars [data-star]"
   );
 
-  if (!ratingInput) {
-    console.warn(
-      "Feedback rating input is missing. Add a hidden input with name='rating'."
-    );
-    return;
-  }
-
-  if (!stars.length) {
-    console.warn("Feedback star buttons were not found.");
+  if (!ratingInput || !stars.length) {
+    console.warn("Feedback rating elements are missing.");
     return;
   }
 
@@ -1174,7 +1165,7 @@ async function submitFeedback(event) {
     form.querySelector('[name="rating"]') ||
     form.querySelector('[name="stars"]');
 
-  const rating = Number(ratingInput ? ratingInput.value : 0);
+  const rating = Number(ratingInput?.value || 0);
 
   if (!feedback) {
     notify(getText("emptyFeedback"), "warning");
@@ -1193,14 +1184,14 @@ async function submitFeedback(event) {
       name: String(formData.get("name") || "").trim(),
       role: String(formData.get("role") || "").trim(),
       state: String(formData.get("state") || "").trim(),
-      rating: rating,
-      feedback: feedback,
+      rating,
+      feedback,
       language: state.language
     };
 
     const result = await postJSON(API.feedback, payload);
 
-    if (result && result.error) {
+    if (result?.error) {
       throw new Error(result.error);
     }
 
@@ -1226,7 +1217,6 @@ async function submitFeedback(event) {
   }
 }
 
- 
 
 
   /* ---------------- 15. COPY AND DOWNLOAD ---------------- */
