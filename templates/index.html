@@ -352,71 +352,83 @@
       </div>
     </section>
 
-    <!-- WEBSITE CREATOR -->
-    <section class="page" id="page-creator">
-      <div class="tool-card">
-        <div class="eyebrow">IDEA → WEBSITE CODE</div>
-        <h2>Website Creator</h2>
 
-        <p class="muted">
-          Describe your idea. Kooksy AI will recommend a suitable technology
-          stack and generate a website design with HTML, CSS and JavaScript
-          where appropriate, along with setup and deployment instructions.
-        </p>
+<!-- WEBSITE CREATOR -->
+<section class="page" id="page-creator">
+  <div class="tool-card">
+    <div class="eyebrow">IDEA → WEBSITE CODE</div>
+    <h2>Website Creator</h2>
 
-        <label for="ideaInput">Describe your website or project idea</label>
-        <textarea id="ideaInput" rows="8" maxlength="1000000"
-          placeholder="Example: Create a responsive student portfolio with a dark purple theme, home page, projects, skills and contact form. Recommend the suitable technologies."></textarea>
+    <p class="muted">
+      Describe your website idea. Kooksy AI will generate the project files,
+      explain the technology choices, and provide setup and deployment guidance.
+    </p>
 
-        <div class="creator-bottom">
-          <span class="muted small" id="ideaCount">0 / 1000000</span>
-          <button class="primary" id="createWebsiteBtn" type="button">
-            Generate project ✦
-          </button>
-        </div>
+    <label for="ideaInput">Describe your website or project idea</label>
+    <textarea
+      id="ideaInput"
+      rows="8"
+      maxlength="1000000"
+      placeholder="Example: Create a responsive student portfolio with projects, skills, contact form and a dark purple theme."
+    ></textarea>
 
-        <p class="muted small">
-          After generation, inspect the code, preview it and download your files.
-          Generated projects should be tested before production use.
-        </p>
+    <div class="creator-bottom">
+      <span class="muted small" id="ideaCount">0 / 1000000</span>
+      <button class="primary" id="createWebsiteBtn" type="button">
+        Generate project ✦
+      </button>
+    </div>
 
-        <div id="creatorResult" class="result" aria-live="polite"></div>
+    <p class="muted small">
+      Review and test generated code before production use.
+      Kooksy AI provides files and guidance; it does not automatically deploy your website.
+    </p>
 
-        <!-- NEW: Website Creator output controls.
-             app.js should populate the generated file data into these controls. -->
-        <div id="creatorWorkspace" class="creator-output-panel" hidden>
-          <h3>Your generated website</h3>
-          <p id="creatorTechStack" class="muted"></p>
-          <p id="creatorExplanation" class="prose"></p>
+    <div id="creatorResult" class="result" aria-live="polite"></div>
 
-          <label for="creatorFileSelect">Select generated file</label>
-          <select id="creatorFileSelect" class="studio-select">
-            <option value="index.html">index.html</option>
-          </select>
+    <div id="creatorWorkspace" class="creator-output-panel" hidden>
+      <h3>Your generated website</h3>
+      <p id="creatorTechStack" class="muted"></p>
+      <p id="creatorExplanation" class="prose"></p>
 
-          <div class="creator-toolbar">
-            <button class="ghost" id="creatorCopyBtn" type="button">Copy file</button>
-            <button class="ghost" id="creatorDownloadFileBtn" type="button">Download file</button>
-            <button class="ghost" id="creatorDownloadZipBtn" type="button">Download ZIP</button>
-            <button class="primary" id="creatorPreviewBtn" type="button">Refresh preview</button>
-            <button class="ghost" id="creatorOpenPreviewBtn" type="button">Open in new tab</button>
-          </div>
+      <label for="creatorFileSelect">Select generated file</label>
+      <select id="creatorFileSelect" class="studio-select">
+        <option value="">Generate a project first</option>
+      </select>
 
-          <label for="creatorCodeEditor">Code editor</label>
-          <textarea id="creatorCodeEditor" class="creator-code"
-            spellcheck="false" aria-label="Generated website code"></textarea>
-
-          <h3>Live preview</h3>
-          <iframe id="creatorPreview" class="creator-preview"
-            title="Generated website preview"
-            sandbox="allow-forms allow-modals allow-scripts"
-            referrerpolicy="no-referrer"></iframe>
-
-          <h3>Deployment guide</h3>
-          <div id="creatorDeploymentGuide" class="prose"></div>
-        </div>
+      <div class="creator-toolbar">
+        <button class="ghost" id="creatorCopyBtn" type="button">Copy file</button>
+        <button class="ghost" id="creatorDownloadFileBtn" type="button">Download file</button>
+        <button class="ghost" id="creatorDownloadZipBtn" type="button">Download ZIP</button>
+        <button class="primary" id="creatorPreviewBtn" type="button">Refresh preview</button>
+        <button class="ghost" id="creatorOpenPreviewBtn" type="button">Open in new tab</button>
       </div>
-    </section>
+
+      <label for="creatorCodeEditor">Code editor</label>
+      <textarea
+        id="creatorCodeEditor"
+        class="creator-code"
+        spellcheck="false"
+        aria-label="Generated website code"
+      ></textarea>
+
+      <h3>Live preview</h3>
+      <iframe
+        id="creatorPreview"
+        class="creator-preview"
+        title="Generated website preview"
+        sandbox="allow-scripts allow-forms"
+        referrerpolicy="no-referrer"
+      ></iframe>
+
+      <h3>Deployment guide</h3>
+      <div id="creatorDeploymentGuide" class="prose"></div>
+      <h3>Hosting suggestions</h3>
+      <div id="creatorHosting" class="prose"></div>
+    </div>
+  </div>
+</section>
+
 
     <!-- NEW: KOOKIE'S AI CODING STUDIO -->
     <section class="page" id="page-coding">
