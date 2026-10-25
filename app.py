@@ -389,8 +389,6 @@ def index():
 def signup():
     if request.method == "POST":
         username = safe_text(request.form.get("username"), 30)
-        # Existing signup code continues here
-        password = request.form.get("password", "")
 
         if not username or len(username) < 3:
             return auth_page(
