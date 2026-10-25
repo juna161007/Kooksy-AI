@@ -506,6 +506,7 @@ def forgot_password():
     )
 
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("user_id"):
@@ -524,7 +525,7 @@ def login():
         if not user or not check_password_hash(
             user["password_hash"], password
         ):
-    return auth_page(
+            return auth_page(
                 "Login",
                 "login",
                 "Invalid username or password.",
@@ -536,9 +537,9 @@ def login():
         session["language"] = "en"
         session["csrf_token"] = secrets.token_urlsafe(32)
 
-        return redirect(url_for("index")                             
-    return auth_page("Login", "login")
+        return redirect(url_for("index"))
 
+    return auth_page("Login", "login")
 
 @app.route("/logout", methods=["GET", "POST"])
 def logout():
