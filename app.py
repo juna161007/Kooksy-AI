@@ -945,11 +945,12 @@ def create_goal():
     if language not in LANGUAGES:
         language = "en"
 
-
     prompt = f"""
 Create a simple, practical plan for this goal:
 
 {goal}
+
+Respond in the language selected by the user: {language}.
 
 Use easy words that a beginner can understand.
 Keep explanations short, clear, and useful.
@@ -962,13 +963,26 @@ Include these sections:
 3. Success Criteria - Explain how to know the goal is completed.
 4. Risks and Assumptions - Mention important risks and how to reduce them.
 5. AI Limitations and Human Verification - Explain what may be wrong
+   and what a person should verify.
+6. Scoring Criteria - If relevant, evaluate the plan using:
+   Problem Fit & Usefulness (20), Agentic Capability (25),
+   Technical Implementation (20), Innovation (15),
+   User Experience (10), Presentation (10).
+"""
+    try:
+        result = call_groq(
+            prompt,
+            language=language,
+        )
+
+        return jsonify({
+            "success": True,
             "goal": goal,
             "result": result,
         })
 
     except RuntimeError as exc:
         return error_response(str(exc), 502)
-
 
 @app.get("/api/goals")
 @login_required
