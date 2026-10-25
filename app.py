@@ -1132,9 +1132,10 @@ def studio_ai_prompt(action, files, instruction, language):
         "explain": (
             "Explain the project and important code sections simply. "
             "Do not rewrite files unless necessary."
-                      ),
+        ),
     }
-  if not task:
+
+    if not task:
         raise ValueError("Unsupported Coding Studio action.")
 
     return f"""
@@ -1173,6 +1174,7 @@ Project files:
 
 
 
+
 # ---------------------------------------------------------
 # WEBSITE CREATOR - GENERATE WEBSITE FILES
 # ---------------------------------------------------------
@@ -1181,6 +1183,7 @@ Project files:
 @login_required
 def create_website():
     data = get_json()
+
     idea = safe_text(data.get("idea"), 12000)
     language = data.get("language", session.get("language", "en"))
 
@@ -1190,6 +1193,8 @@ def create_website():
     if language not in LANGUAGES:
         language = "en"
 
+    language_name = LANGUAGES.get(language, "English")
+
     prompt = f"""
 You are Kooksy AI Website Creator.
 
@@ -1198,7 +1203,7 @@ Create a polished, responsive website based on the user's idea.
 User's website idea:
 {idea}
 
-Selected language: {language}
+Selected language: {language_name}
 
 Return valid JSON only, using exactly this structure:
 {{
@@ -1223,7 +1228,7 @@ Requirements:
 - Link index.html to style.css and app.js using relative paths.
 - Make the website responsive on mobile and desktop.
 - Use professional styling and accessible HTML.
-- Keep all user-visible text in the selected language where practical.
+- Keep user-visible text in the selected language where practical.
 - Return JSON only, without Markdown fences.
 - Do not include explanations outside the JSON object.
 """
@@ -1232,6 +1237,7 @@ Requirements:
         result = call_groq(
             prompt,
             language=language,
+            temperature=0.2,
         )
 
         if isinstance(result, str):
@@ -1262,6 +1268,7 @@ Requirements:
             )
 
         required_files = ("index.html", "style.css", "app.js")
+        clean_files = {}
 
         for filename in required_files:
             content = project_files.get(filename, "")
@@ -1272,10 +1279,9 @@ Requirements:
                     502,
                 )
 
-        result["files"] = {
-            filename: project_files.get(filename, "")
-            for filename in required_files
-        }
+            clean_files[filename] = content
+
+        result["files"] = clean_files
 
         return jsonify({
             "success": True,
@@ -1283,13 +1289,25 @@ Requirements:
         })
 
     except RuntimeError as exc:
-        return error_response(str(exc), 502)
+        app.logger.warning("Website Creator request failed: %s", exc)
+        return error_response(
+            "Website generation failed. Please try again.",
+            502,
+        )
 
     except (ValueError, json.JSONDecodeError):
         return error_response(
             "Kooksy AI could not generate valid website JSON. Please try again.",
             502,
         )
+
+    except Exception:
+        app.logger.exception("Unexpected Website Creator error")
+        return error_response(
+            "An unexpected error occurred while generating the website.",
+            500,
+        )
+
 
 # ---------------------------------------------------------
 # KOOKIE'S AI CODING STUDIO - AI ACTIONS
@@ -1312,23 +1330,35 @@ def coding_studio():
     except ValueError as exc:
         return error_response(str(exc))
 
-    if action not in {
-        "debug", "fix", "explain", "review",
-        "feature", "convert", "preview"
-    }:
-        return error_response("Unsupported Coding Studio action.")
+    supported_actions = {
+        "debug",
+        "fix",
+        "explain",
+        "review",
+        "feature",
+        "convert",
+        "preview",
+    }
 
-    if action in {"fix", "feature", "convert"} and not instruction:
-        return error_response("Please describe what you want the AI to do.")
+    if action not in supported_actions:
+        return error_response("Unsupported Coding Studio action.")
 
     if action == "convert" and not instruction:
         return error_response(
             "Specify the target language, for example: Convert Java to Python."
         )
 
+    if action in {"fix", "feature"} and not instruction:
+        return error_response(
+            "Please describe what you want the AI to do."
+        )
+
     try:
         prompt = studio_ai_prompt(
-            action, files, instruction, language
+            action,
+            files,
+            instruction,
+            language,
         )
 
         answer = call_groq(
@@ -1338,6 +1368,13 @@ def coding_studio():
         )
 
         result = studio_extract_json(answer)
+
+        if not isinstance(result, dict):
+            return error_response(
+                "The AI returned an invalid Coding Studio response.",
+                502,
+            )
+
         output_files = result.get("files", [])
 
         if not isinstance(output_files, list):
@@ -1356,12 +1393,15 @@ def coding_studio():
             if not filename or not isinstance(content, str):
                 continue
 
-            if len(content.encode("utf-8")) > STUDIO_MAX_FILE_SIZE:
+            content_size = len(content.encode("utf-8"))
+
+            if content_size > STUDIO_MAX_FILE_SIZE:
                 continue
 
-            total_size += len(content.encode("utf-8"))
-            if total_size > STUDIO_MAX_TOTAL_SIZE:
+            if total_size + content_size > STUDIO_MAX_TOTAL_SIZE:
                 break
+
+            total_size += content_size
 
             safe_output.append({
                 "name": filename,
@@ -1369,29 +1409,46 @@ def coding_studio():
             })
 
         review = result.get("review", [])
+
         if not isinstance(review, list):
             review = []
+
+        summary_text = result.get("summary", "")
+
+        if not isinstance(summary_text, str):
+            summary_text = str(summary_text)
 
         return jsonify({
             "success": True,
             "action": action,
-            "summary": str(result.get("summary", "")),
+            "summary": summary_text,
             "files": safe_output,
-            "review": [str(item)[:1000] for item in review[:30]],
+            "review": [
+                str(item)[:1000]
+                for item in review[:30]
+            ],
             "message": "Coding Studio response generated.",
         })
-            "count": summary["count"],
-            "average_rating": round(
-                summary["average"] or 0, 2
-            ),
-            "feedback": [dict(row) for row in rows],
-        })
+
+    except RuntimeError:
+        app.logger.exception("Coding Studio AI request failed")
+        return error_response(
+            "Coding Studio could not contact the AI service. Please try again.",
+            502,
+        )
+
+    except (ValueError, TypeError):
+        app.logger.exception("Invalid Coding Studio response")
+        return error_response(
+            "Coding Studio received an invalid response. Please try again.",
+            502,
+        )
 
     except Exception:
-        app.logger.exception("Failed to load admin feedback.")
+        app.logger.exception("Unexpected Coding Studio error")
         return error_response(
-            "Unable to load admin feedback.",
-            500
+            "An unexpected Coding Studio error occurred.",
+            500,
         )
 
 
@@ -1406,7 +1463,7 @@ def admin_feedback():
     admin_username = os.getenv("ADMIN_USERNAME", "").strip()
     current_username = session.get("username", "")
 
-    # Verify admin access
+    # Verify admin access.
     if (
         not admin_username
         or not isinstance(current_username, str)
@@ -1446,8 +1503,6 @@ def admin_feedback():
         "average_rating": round(summary["average"] or 0, 2),
         "feedback": [dict(row) for row in rows],
     })
-
-
 
 # ---------------------------------------------------------
 # ERROR HANDLERS
