@@ -385,11 +385,13 @@ def index():
         selected_language=session.get("language", "en"),
     )
 
+
+
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
-      password = request.form.get("password", "") 
-      username = safe_text(request.form.get("username"), 30)
+        username = safe_text(request.form.get("username"), 30)
+        password = request.form.get("password", "")
 
         if not username or len(username) < 3:
             return auth_page(
@@ -411,7 +413,6 @@ def signup():
 
         try:
             with get_db() as db:
-                # Keep code generation and account creation in one DB transaction.
                 recovery_code = next_recovery_code(db)
                 cursor = db.execute(
                     """INSERT INTO users
@@ -441,6 +442,7 @@ def signup():
                 "That username is already taken. Please choose another."
             ), 409
     return auth_page("Create Account", "signup")
+
 
 
 @app.route("/signup/success", methods=["GET"])
@@ -522,7 +524,7 @@ def login():
         if not user or not check_password_hash(
             user["password_hash"], password
         ):
-            return auth_page(
+    return auth_page(
                 "Login",
                 "login",
                 "Invalid username or password.",
@@ -534,8 +536,7 @@ def login():
         session["language"] = "en"
         session["csrf_token"] = secrets.token_urlsafe(32)
 
-        return redirect(url_for("index"))
-
+        return redirect(url_for("index")                             
     return auth_page("Login", "login")
 
 
