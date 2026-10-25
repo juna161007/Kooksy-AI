@@ -523,14 +523,17 @@
     });
   }
 
+ 
   /* ---------------- 6. SAFE MARKDOWN RENDERING ---------------- */
 
   function renderMarkdown(source) {
     const text = String(source ?? "");
     const codeBlocks = [];
 
+    // Escape untrusted text before adding HTML formatting.
     let safe = escapeHTML(text);
 
+    // Protect fenced code blocks before applying Markdown formatting.
     safe = safe.replace(
       /```([a-zA-Z0-9_+#.-]*)\n?([\s\S]*?)```/g,
       (_, language, code) => {
@@ -538,18 +541,20 @@
 
         codeBlocks.push({
           language: language || "text",
-          code
+          code: String(code ?? "")
         });
 
         return `\u0000CODEBLOCK${index}\u0000`;
       }
     );
 
+    // Inline code.
     safe = safe.replace(
       /`([^`\n]+)`/g,
       '<code class="inline-code">$1</code>'
     );
 
+    // Basic Markdown formatting.
     safe = safe.replace(
       /\*\*([\s\S]+?)\*\*/g,
       "<strong>$1</strong>"
@@ -560,21 +565,11 @@
       "$1<em>$2</em>"
     );
 
-    safe = safe.replace(
-      /^### (.+)$/gm,
-      "<h3>$1</h3>"
-    );
+    safe = safe.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+    safe = safe.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+    safe = safe.replace(/^# (.+)$/gm, "<h1>$1</h1>");
 
-    safe = safe.replace(
-      /^## (.+)$/gm,
-      "<h2>$1</h2>"
-    );
-
-    safe = safe.replace(
-      /^# (.+)$/gm,
-      "<h1>$1</h1>"
-    );
-
+    // Lists.
     safe = safe.replace(
       /^\s*[-*] (.+)$/gm,
       "<li>$1</li>"
@@ -587,13 +582,16 @@
 
     safe = safe.replace(/\n/g, "<br>");
 
+    // Restore protected code blocks.
     safe = safe.replace(
       /\u0000CODEBLOCK(\d+)\u0000/g,
       (_, rawIndex) => {
-        const block = codeBlocks[Number(rawIndex)];
+        const index = Number(rawIndex);
+        const block = codeBlocks[index];
 
         if (!block) return "";
 
+        // Escape the original code only when inserting it into HTML.
         const language = escapeHTML(block.language);
         const code = escapeHTML(block.code);
 
@@ -604,7 +602,7 @@
               <button
                 type="button"
                 class="copy-code-btn"
-                data-code-index="${Number(rawIndex)}"
+                data-code-index="${index}"
               >Copy</button>
             </div>
             <pre><code>${code}</code></pre>
@@ -615,6 +613,7 @@
 
     return { html: safe, codeBlocks };
   }
+
 
   /* ---------------- 7. CHAT MESSAGE DISPLAY ---------------- */
 
