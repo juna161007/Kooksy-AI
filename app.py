@@ -526,7 +526,6 @@ def set_language():
         "language_name": LANGUAGES[language],
     })
 
-
 # ---------------------------------------------------------
 # CHAT AND ECHOES OF TIME
 # ---------------------------------------------------------
@@ -543,7 +542,9 @@ def chat():
     if len(prompt) > MAX_PROMPT_LENGTH:
         return error_response("Message is too long.")
 
-    language = data.get("language", session.get("language", "en"))
+    language = data.get(
+        "language", session.get("language", "en")
+    )
     if language not in LANGUAGES:
         language = "en"
 
@@ -551,79 +552,108 @@ def chat():
     if mode not in ("user", "developer"):
         mode = "user"
 
-    # The frontend may supply recent unsaved messages for context.
-    history = clean_chat_history(data.get("history", []))
+    user_id = session.get("user_id")
+    conversation_id = data.get("conversation_id")
 
     if mode == "developer":
         prompt = (
-            "Developer mode is enabled. Help with programming, debugging, "
-            "code explanations, and technical tasks. Provide code examples "
-            "when appropriate. Explain the solution in the selected language.\n\n"
+            "Developer mode is enabled. Help with programming, "
+            "debugging, code explanations, and technical tasks. "
+            "Provide code examples when appropriate. "
+            "Explain the solution in the selected language.\n\n"
             + prompt
         )
+
+    try:
+        with get_db() as db:
+            conversation = None
 
             if conversation_id is not None:
                 try:
                     conversation_id = int(conversation_id)
                 except (TypeError, ValueError):
-                    return error_response("Invalid conversation ID.")
+                    return error_response(
+                        "Invalid conversation ID."
+                    )
 
                 conversation = owned_conversation(
                     db, conversation_id, user_id
                 )
+
                 if not conversation:
                     return error_response(
                         "Conversation not found.", 404
                     )
 
             if conversation is None:
-                title = prompt[:60].replace("\n", " ").strip() or "New Chat"
+                title = (
+                    prompt[:60].replace("\n", " ").strip()
+                    or "New Chat"
+                )
                 timestamp = now_iso()
+
                 cursor = db.execute(
-                    """INSERT INTO conversations
-                       (user_id, title, created_at, updated_at)
-                       VALUES (?, ?, ?, ?)""",
-                    (user_id, title, timestamp, timestamp)
+                    """
+                    INSERT INTO conversations
+                    (user_id, title, created_at, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (user_id, title, timestamp, timestamp),
                 )
                 conversation_id = cursor.lastrowid
 
-            # Persist the user's message.
             db.execute(
-                """INSERT INTO messages
-                   (conversation_id, role, content, created_at)
-                   VALUES (?, 'user', ?, ?)""",
-                (conversation_id, prompt, now_iso())
+                """
+                INSERT INTO messages
+                (conversation_id, role, content, created_at)
+                VALUES (?, 'user', ?, ?)
+                """,
+                (conversation_id, prompt, now_iso()),
             )
 
-            # Database messages are the trusted history for this conversation.
             stored = db.execute(
-                """SELECT role, content FROM messages
-                   WHERE conversation_id = ?
-                   ORDER BY id DESC LIMIT ?""",
-                (conversation_id, MAX_HISTORY_MESSAGES)
+                """
+                SELECT role, content FROM messages
+                WHERE conversation_id = ?
+                ORDER BY id DESC LIMIT ?
+                """,
+                (conversation_id, MAX_HISTORY_MESSAGES),
             ).fetchall()
 
             messages = [
-                {"role": row["role"], "content": row["content"][:4000]}
+                {
+                    "role": row["role"],
+                    "content": row["content"][:4000],
+                }
                 for row in reversed(stored)
             ]
 
         answer = call_groq(messages, language=language)
 
         with get_db() as db:
-            # Verify ownership again before saving the AI response.
-            if not owned_conversation(db, conversation_id, user_id):
-                return error_response("Conversation not found.", 404)
+            if not owned_conversation(
+                db, conversation_id, user_id
+            ):
+                return error_response(
+                    "Conversation not found.", 404
+                )
 
             db.execute(
-                """INSERT INTO messages
-                   (conversation_id, role, content, created_at)
-                   VALUES (?, 'assistant', ?, ?)""",
-                (conversation_id, answer, now_iso())
+                """
+                INSERT INTO messages
+                (conversation_id, role, content, created_at)
+                VALUES (?, 'assistant', ?, ?)
+                """,
+                (conversation_id, answer, now_iso()),
             )
+
             db.execute(
-                "UPDATE conversations SET updated_at = ? WHERE id = ? AND user_id = ?",
-                (now_iso(), conversation_id, user_id)
+                """
+                UPDATE conversations
+                SET updated_at = ?
+                WHERE id = ? AND user_id = ?
+                """,
+                (now_iso(), conversation_id, user_id),
             )
 
         return jsonify({
@@ -640,10 +670,14 @@ def chat():
 
     except RuntimeError as exc:
         return error_response(str(exc), 502)
-    except sqlite3.Error:
-        app.logger.exception("Database error in chat endpoint")
-        return error_response("A database error occurred.", 500)
 
+    except sqlite3.Error:
+        app.logger.exception(
+            "Database error in chat endpoint"
+        )
+        return error_response(
+            "A database error occurred.", 500
+        )
 
 @app.get("/api/history")
 @login_required
