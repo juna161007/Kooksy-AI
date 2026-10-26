@@ -840,32 +840,28 @@ if (welcome) {
 }
 
 }
-
 /* ---------------- 11. CHAT REQUEST ---------------- */
 
 function getSelectedMode() {
-const element =
-$("modeSelect") ||
-$("userMode") ||
-$("modeSelector") ||
-document.querySelector('[name="mode"]:checked');
+  const element =
+    $("modeSelect") ||
+    $("userMode") ||
+    $("modeSelector") ||
+    document.querySelector('[name="mode"]:checked');
 
-return element?.value || "normal";
-
+  return element?.value || "normal";
 }
 
 function getSelectedLanguage() {
-const element =
-$("languageSelect") ||
-$("languageSelector") ||
-$("language");
+  const element =
+    $("languageSelect") ||
+    $("languageSelector") ||
+    $("language");
 
-const value = element?.value || state.language || "en";  
+  const value = element?.value || state.language || "en";
 
-return LANGUAGE_VOICES[value] ? value : "en";
-
+  return LANGUAGE_VOICES[value] ? value : "en";
 }
-
 
 function getMessageInput() {
   return (
@@ -876,103 +872,112 @@ function getMessageInput() {
     $("promptInput")
   );
 }
+
 function extractAIResponse(data) {
-if (typeof data === "string") {
-return data;
-}
+  if (typeof data === "string") {
+    return data;
+  }
 
-return (  
-  data?.response ||  
-  data?.reply ||  
-  data?.answer ||  
-  data?.message ||  
-  data?.content ||  
-  data?.result?.response ||  
-  data?.result?.content ||  
-  ""  
-);
-
+  return (
+    data?.response ||
+    data?.reply ||
+    data?.answer ||
+    data?.message ||
+    data?.content ||
+    data?.result?.response ||
+    data?.result?.content ||
+    ""
+  );
 }
 
 async function sendMessage(textOverride = null) {
-if (state.busy) return;
+  if (state.busy) return;
 
-const input = getMessageInput();  
+  const input = getMessageInput();
 
-const message = String(  
-  textOverride ?? input?.value ?? ""  
-).trim();  
+  const message = String(
+    textOverride ?? input?.value ?? ""
+  ).trim();
 
-if (!message) {  
-  notify(getText("emptyMessage"), "warning");  
-  return;  
-}  
+  if (!message) {
+    notify(getText("emptyMessage"), "warning");
+    return;
+  }
 
-if (message.length > MAX_MESSAGE_LENGTH) {  
-  notify(getText("charLimit"), "warning");  
-  return;  
-}  
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    notify(getText("charLimit"), "warning");
+    return;
+  }
 
-const language = getSelectedLanguage();  
+  const language = getSelectedLanguage();
 
-state.language = language;  
-localStorage.setItem("kooksy-language", language);  
+  state.language = language;
+  localStorage.setItem("kooksy-language", language);
 
-hideWelcomeScreen();  
+  hideWelcomeScreen();
 
-if (input && textOverride === null) {  
-  input.value = "";  
-}  
+  // Clear the input after capturing the message.
+  if (input) {
+    input.value = "";
+  }
 
-addMessage("user", message);  
+  addMessage("user", message);
 
-state.chatHistory.push({  
-  role: "user",  
-  content: message  
-});  
+  state.chatHistory.push({
+    role: "user",
+    content: message
+  });
 
-setBusy(true);  
+  setBusy(true);
 
-try {  
-  const payload = {  
-    message,  
-    prompt: message,  
-    language,  
-    mode: getSelectedMode(),  
-    history: state.chatHistory.slice(-20),  
-    chat_history: state.chatHistory.slice(-20)  
-  };  
+  try {
+    const history = state.chatHistory.slice(-20);
 
-  const data = await postJSON(API.chat, payload);  
-  const response = extractAIResponse(data);  
+    const payload = {
+      message,
+      prompt: message,
+      language,
+      mode: getSelectedMode(),
+      history,
+      chat_history: history
+    };
 
-  if (!response) {  
-    throw new Error(  
-      data?.error || getText("chatFailed")  
-    );  
-  }  
+    const data = await postJSON(API.chat, payload);
+    const response = extractAIResponse(data);
 
-  addMessage("assistant", response);  
+    if (!response) {
+      throw new Error(
+        data?.error || getText("chatFailed")
+      );
+    }
 
-  state.chatHistory.push({  
-    role: "assistant",  
-    content: response  
-  });  
-} catch (error) {  
-  console.error("Kooksy AI chat error:", error);  
+    addMessage("assistant", response);
 
-  addMessage(  
-    "assistant",  
-    error.message || getText("chatFailed")  
-  );  
+    state.chatHistory.push({
+      role: "assistant",
+      content: response
+    });
 
-  notify(error.message || getText("chatFailed"), "error");  
-} finally {  
-  setBusy(false);  
-  scrollChatToBottom();  
+  } catch (error) {
+    console.error("Kooksy AI chat error:", error);
+
+    addMessage(
+      "assistant",
+      error.message || getText("chatFailed")
+    );
+
+    notify(
+      error.message || getText("chatFailed"),
+      "error"
+    );
+
+  } finally {
+    setBusy(false);
+    scrollChatToBottom();
+  }
 }
 
-}
+
 /* ---------------- 12. SEND BUTTON AND ENTER KEY ---------------- */
 
 function bindChatControls() {
@@ -981,19 +986,15 @@ function bindChatControls() {
     $("messageForm") ||
     $("chat-form");
 
-  // Support the actual button IDs used in the HTML.
   const sendButton =
     $("sendBtn") ||
     $("sendButton") ||
     $("send-button") ||
     $("send-btn");
 
-  // Support the actual textarea ID used in the HTML.
-  const input =
-    $("prompt") ||
-    getMessageInput();
+  const input = getMessageInput();
 
-  // Bind form submission.
+  // Form submission.
   if (form && !form.dataset.kooksyBound) {
     form.dataset.kooksyBound = "true";
 
@@ -1006,9 +1007,12 @@ function bindChatControls() {
     });
   }
 
-  // Bind Send button independently, even when a form exists.
+  // Send button.
   if (sendButton && !sendButton.dataset.kooksyBound) {
     sendButton.dataset.kooksyBound = "true";
+
+    sendButton.dataset.originalType =
+      sendButton.getAttribute("type") || "";
 
     sendButton.addEventListener("click", (event) => {
       event.preventDefault();
@@ -1019,7 +1023,7 @@ function bindChatControls() {
     });
   }
 
-  // Send message with Enter; Shift + Enter creates a new line.
+  // Enter sends; Shift + Enter creates a new line.
   if (input && !input.dataset.kooksyEnterBound) {
     input.dataset.kooksyEnterBound = "true";
 
@@ -1039,11 +1043,9 @@ function bindChatControls() {
   }
 
   // New Chat buttons.
-  const newChatButtons = document.querySelectorAll(
+  document.querySelectorAll(
     "#newChatBtn, #new-chat-btn, .new-chat-btn"
-  );
-
-  newChatButtons.forEach((button) => {
+  ).forEach((button) => {
     if (button.dataset.kooksyBound) return;
 
     button.dataset.kooksyBound = "true";
@@ -1076,152 +1078,173 @@ function bindChatControls() {
 /* ---------------- 13. VOICE INPUT ---------------- */
 
 function startVoiceInput() {
-const SpeechRecognition =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition;
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
 
-if (!SpeechRecognition) {  
-  notify(  
-    getText("voiceUnsupported") ||  
-      "Voice recognition is not supported by this browser.",  
-    "error"  
-  );  
-  return;  
-}  
+  if (!SpeechRecognition) {
+    notify(
+      getText("voiceUnsupported") ||
+        "Voice recognition is not supported by this browser.",
+      "error"
+    );
+    return;
+  }
 
-if (state.recognition) {  
-  state.recognition.stop();  
-  state.recognition = null;  
-}  
+  // Stop any previous recognition session.
+  if (state.recognition) {
+    try {
+      state.recognition.onend = null;
+      state.recognition.stop();
+    } catch (error) {
+      console.warn("Previous voice session:", error);
+    }
 
-const recognition = new SpeechRecognition();  
+    state.recognition = null;
+  }
 
-recognition.lang =  
-  LANGUAGE_VOICES[getSelectedLanguage()] || "en-IN";  
+  const recognition = new SpeechRecognition();
 
-recognition.continuous = false;  
-recognition.interimResults = true;  
-recognition.maxAlternatives = 1;  
+  const language = getSelectedLanguage();
 
-state.recognition = recognition;  
+  recognition.lang =
+    LANGUAGE_VOICES[language] || "en-IN";
 
-const input = getMessageInput();  
-let finalTranscript = "";  
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
 
-recognition.onstart = () => {  
-  notify(  
-    getText("listening") || "Listening… Speak now.",  
-    "info"  
-  );  
-};  
+  state.recognition = recognition;
 
-recognition.onresult = (event) => {  
-  let interimTranscript = "";  
+  const input = getMessageInput();
+  let finalTranscript = "";
 
-  for (  
-    let index = event.resultIndex;  
-    index < event.results.length;  
-    index++  
-  ) {  
-    const transcript =  
-      event.results[index][0].transcript;  
+  recognition.onstart = () => {
+    notify(
+      getText("listening") || "Listening… Speak now.",
+      "info"
+    );
+  };
 
-    if (event.results[index].isFinal) {  
-      finalTranscript += transcript;  
-    } else {  
-      interimTranscript += transcript;  
-    }  
-  }  
+  recognition.onresult = (event) => {
+    let interimTranscript = "";
 
-  if (input) {  
-    input.value = [  
-      finalTranscript,  
-      interimTranscript  
-    ]  
-      .filter(Boolean)  
-      .join(" ")  
-      .trim();  
-  }  
-};  
+    for (
+      let index = event.resultIndex;
+      index < event.results.length;
+      index++
+    ) {
+      const result = event.results[index];
+      const transcript = result[0].transcript;
 
-recognition.onerror = (event) => {  
-  console.error("Kooksy voice input error:", event.error);  
+      if (result.isFinal) {
+        finalTranscript += transcript + " ";
+      } else {
+        interimTranscript += transcript;
+      }
+    }
 
-  if (  
-    event.error === "not-allowed" ||  
-    event.error === "service-not-allowed"  
-  ) {  
-    notify(  
-      getText("voicePermission") ||  
-        "Allow microphone access and try again.",  
-      "error"  
-    );  
-  } else if (event.error !== "no-speech") {  
-    notify(  
-      "Voice input failed. Please try again.",  
-      "error"  
-    );  
-  }  
-};  
+    if (input) {
+      input.value = (
+        finalTranscript + interimTranscript
+      ).trim();
+    }
+  };
 
-recognition.onend = () => {  
-  if (state.recognition === recognition) {  
-    state.recognition = null;  
-  }  
+  recognition.onerror = (event) => {
+    console.error(
+      "Kooksy voice input error:",
+      event.error
+    );
 
-  if (input && finalTranscript.trim()) {  
-    input.value = finalTranscript.trim();  
-  }  
-};  
+    if (
+      event.error === "not-allowed" ||
+      event.error === "service-not-allowed"
+    ) {
+      notify(
+        getText("voicePermission") ||
+          "Allow microphone access and try again.",
+        "error"
+      );
+    } else if (event.error === "no-speech") {
+      notify(
+        "No speech detected. Please try again.",
+        "warning"
+      );
+    } else if (event.error !== "aborted") {
+      notify(
+        "Voice input failed. Please try again.",
+        "error"
+      );
+    }
+  };
 
-try {  
-  recognition.start();  
-} catch (error) {  
-  console.error("Unable to start voice recognition:", error);  
+  recognition.onend = () => {
+    if (state.recognition === recognition) {
+      state.recognition = null;
+    }
 
-  notify(  
-    "Unable to start voice input. Please try again.",  
-    "error"  
-  );  
+    if (input && finalTranscript.trim()) {
+      input.value = finalTranscript.trim();
+    }
+  };
+
+  try {
+    recognition.start();
+  } catch (error) {
+    console.error(
+      "Unable to start voice recognition:",
+      error
+    );
+
+    if (state.recognition === recognition) {
+      state.recognition = null;
+    }
+
+    notify(
+      "Unable to start voice input. Please try again.",
+      "error"
+    );
+  }
 }
 
-}
 
 function bindVoiceControls() {
-const voiceButtons = document.querySelectorAll(
-"#voiceBtn, #voiceInputBtn, #micBtn, " +
-"#startVoiceBtn, .voice-input-btn, [data-action='voice-input']"
-);
+  const voiceButtons = document.querySelectorAll(
+    "#voiceBtn, #voiceInputBtn, #micBtn, " +
+    "#startVoiceBtn, .voice-input-btn, " +
+    "[data-action='voice-input']"
+  );
 
-voiceButtons.forEach((button) => {  
-  if (button.dataset.kooksyVoiceBound) return;  
+  voiceButtons.forEach((button) => {
+    if (button.dataset.kooksyVoiceBound) return;
 
-  button.dataset.kooksyVoiceBound = "true";  
+    button.dataset.kooksyVoiceBound = "true";
 
-  button.addEventListener("click", (event) => {  
-    event.preventDefault();  
-    startVoiceInput();  
-  });  
-});  
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
 
-const stopSpeechButtons = document.querySelectorAll(  
-  "#stopSpeakingBtn, .stop-speaking-btn, " +  
-  "[data-action='stop-speaking']"  
-);  
+      startVoiceInput();
+    });
+  });
 
-stopSpeechButtons.forEach((button) => {  
-  if (button.dataset.kooksySpeechBound) return;  
+  const stopSpeechButtons = document.querySelectorAll(
+    "#stopSpeakingBtn, .stop-speaking-btn, " +
+    "[data-action='stop-speaking']"
+  );
 
-  button.dataset.kooksySpeechBound = "true";  
+  stopSpeechButtons.forEach((button) => {
+    if (button.dataset.kooksySpeechBound) return;
 
-  button.addEventListener("click", (event) => {  
-    event.preventDefault();  
-    stopSpeaking();  
-  });  
-});
+    button.dataset.kooksySpeechBound = "true";
 
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+
+      stopSpeaking();
+    });
+  });
 }
-
 /* ---------------- 14. LANGUAGE SELECTION ---------------- */
 
 function applyTranslations() {
