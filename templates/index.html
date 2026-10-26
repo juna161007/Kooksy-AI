@@ -352,83 +352,71 @@
       </div>
     </section>
 
+    <!-- WEBSITE CREATOR -->
+    <section class="page" id="page-creator">
+      <div class="tool-card">
+        <div class="eyebrow">IDEA → WEBSITE CODE</div>
+        <h2>Website Creator</h2>
 
-<!-- WEBSITE CREATOR -->
-<section class="page" id="page-creator">
-  <div class="tool-card">
-    <div class="eyebrow">IDEA → WEBSITE CODE</div>
-    <h2>Website Creator</h2>
+        <p class="muted">
+          Describe your idea. Kooksy AI will recommend a suitable technology
+          stack and generate a website design with HTML, CSS and JavaScript
+          where appropriate, along with setup and deployment instructions.
+        </p>
 
-    <p class="muted">
-      Describe your website idea. Kooksy AI will generate the project files,
-      explain the technology choices, and provide setup and deployment guidance.
-    </p>
+        <label for="ideaInput">Describe your website or project idea</label>
+        <textarea id="ideaInput" rows="8" maxlength="1000000"
+          placeholder="Example: Create a responsive student portfolio with a dark purple theme, home page, projects, skills and contact form. Recommend the suitable technologies."></textarea>
 
-    <label for="ideaInput">Describe your website or project idea</label>
-    <textarea
-      id="ideaInput"
-      rows="8"
-      maxlength="1000000"
-      placeholder="Example: Create a responsive student portfolio with projects, skills, contact form and a dark purple theme."
-    ></textarea>
+        <div class="creator-bottom">
+          <span class="muted small" id="ideaCount">0 / 1000000</span>
+          <button class="primary" id="createWebsiteBtn" type="button">
+            Generate project ✦
+          </button>
+        </div>
 
-    <div class="creator-bottom">
-      <span class="muted small" id="ideaCount">0 / 1000000</span>
-      <button class="primary" id="createWebsiteBtn" type="button">
-        Generate project ✦
-      </button>
-    </div>
+        <p class="muted small">
+          After generation, inspect the code, preview it and download your files.
+          Generated projects should be tested before production use.
+        </p>
 
-    <p class="muted small">
-      Review and test generated code before production use.
-      Kooksy AI provides files and guidance; it does not automatically deploy your website.
-    </p>
+        <div id="creatorResult" class="result" aria-live="polite"></div>
 
-    <div id="creatorResult" class="result" aria-live="polite"></div>
+        <!-- NEW: Website Creator output controls.
+             app.js should populate the generated file data into these controls. -->
+        <div id="creatorWorkspace" class="creator-output-panel" hidden>
+          <h3>Your generated website</h3>
+          <p id="creatorTechStack" class="muted"></p>
+          <p id="creatorExplanation" class="prose"></p>
 
-    <div id="creatorWorkspace" class="creator-output-panel" hidden>
-      <h3>Your generated website</h3>
-      <p id="creatorTechStack" class="muted"></p>
-      <p id="creatorExplanation" class="prose"></p>
+          <label for="creatorFileSelect">Select generated file</label>
+          <select id="creatorFileSelect" class="studio-select">
+            <option value="index.html">index.html</option>
+          </select>
 
-      <label for="creatorFileSelect">Select generated file</label>
-      <select id="creatorFileSelect" class="studio-select">
-        <option value="">Generate a project first</option>
-      </select>
+          <div class="creator-toolbar">
+            <button class="ghost" id="creatorCopyBtn" type="button">Copy file</button>
+            <button class="ghost" id="creatorDownloadFileBtn" type="button">Download file</button>
+            <button class="ghost" id="creatorDownloadZipBtn" type="button">Download ZIP</button>
+            <button class="primary" id="creatorPreviewBtn" type="button">Refresh preview</button>
+            <button class="ghost" id="creatorOpenPreviewBtn" type="button">Open in new tab</button>
+          </div>
 
-      <div class="creator-toolbar">
-        <button class="ghost" id="creatorCopyBtn" type="button">Copy file</button>
-        <button class="ghost" id="creatorDownloadFileBtn" type="button">Download file</button>
-        <button class="ghost" id="creatorDownloadZipBtn" type="button">Download ZIP</button>
-        <button class="primary" id="creatorPreviewBtn" type="button">Refresh preview</button>
-        <button class="ghost" id="creatorOpenPreviewBtn" type="button">Open in new tab</button>
+          <label for="creatorCodeEditor">Code editor</label>
+          <textarea id="creatorCodeEditor" class="creator-code"
+            spellcheck="false" aria-label="Generated website code"></textarea>
+
+          <h3>Live preview</h3>
+          <iframe id="creatorPreview" class="creator-preview"
+            title="Generated website preview"
+            sandbox="allow-forms allow-modals allow-scripts"
+            referrerpolicy="no-referrer"></iframe>
+
+          <h3>Deployment guide</h3>
+          <div id="creatorDeploymentGuide" class="prose"></div>
+        </div>
       </div>
-
-      <label for="creatorCodeEditor">Code editor</label>
-      <textarea
-        id="creatorCodeEditor"
-        class="creator-code"
-        spellcheck="false"
-        aria-label="Generated website code"
-      ></textarea>
-
-      <h3>Live preview</h3>
-      <iframe
-        id="creatorPreview"
-        class="creator-preview"
-        title="Generated website preview"
-        sandbox="allow-scripts allow-forms"
-        referrerpolicy="no-referrer"
-      ></iframe>
-
-      <h3>Deployment guide</h3>
-      <div id="creatorDeploymentGuide" class="prose"></div>
-      <h3>Hosting suggestions</h3>
-      <div id="creatorHosting" class="prose"></div>
-    </div>
-  </div>
-</section>
-
+    </section>
 
     <!-- NEW: KOOKIE'S AI CODING STUDIO -->
     <section class="page" id="page-coding">
@@ -630,22 +618,6 @@
           {% endfor %}
         </div>
 
-<label>Star rating</label>
-
-<div class="stars" id="stars" role="group" aria-label="Choose a rating">
-  {% for n in range(1, 6) %}
-  <button
-    type="button"
-    data-star="{{ n }}"
-    aria-label="{{ n }} star{{ 's' if n != 1 else '' }}"
-    aria-pressed="false"
-  >☆</button>
-  {% endfor %}
-</div>
-
-<span id="ratingDisplay">0/5</span>
-<input type="hidden" name="rating" id="ratingInput" value="0">
-
         <label for="fbMessage">Feedback</label>
         <textarea id="fbMessage" rows="4" maxlength="3000"
           placeholder="What worked well? What could improve?"></textarea>
@@ -714,6 +686,40 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   const promptInput = $("prompt");
+  const sendButton = $("sendBtn");
+
+  /* FIX: app.js may use different send-button IDs. Bind this page's actual
+     #sendBtn here, without changing any other feature. */
+  function sendCurrentMessage() {
+    const message = promptInput?.value.trim() || "";
+
+    if (!message) {
+      promptInput?.focus();
+      return;
+    }
+
+    if (typeof window.KooksyAI?.sendMessage === "function") {
+      window.KooksyAI.sendMessage(message);
+    } else {
+      console.error("Kooksy AI sendMessage is unavailable. Check static/app.js for JavaScript errors.");
+      alert("Kooksy AI is still loading or its JavaScript has an error. Refresh the page and try again.");
+    }
+  }
+
+  if (sendButton && !sendButton.dataset.sendHandlerBound) {
+    sendButton.dataset.sendHandlerBound = "true";
+    sendButton.addEventListener("click", function (event) {
+      event.preventDefault();
+      sendCurrentMessage();
+    });
+  }
+
+  promptInput?.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+      event.preventDefault();
+      sendCurrentMessage();
+    }
+  });
 
   promptInput?.addEventListener("input", function () {
     if ($("charCount")) {
@@ -820,47 +826,23 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
- 
-/* Feedback star rating */
-let selectedRating = 0;
+  /* Feedback star rating */
+  let selectedRating = 0;
 
-function updateFeedbackStars(rating) {
-  selectedRating = Math.max(0, Math.min(5, Number(rating) || 0));
+  document.querySelectorAll("[data-star]").forEach((star) => {
+    star.addEventListener("click", function () {
+      selectedRating = Number(this.dataset.star);
 
-  const stars = document.querySelectorAll("#stars [data-star]");
-  const ratingInput = document.getElementById("ratingInput");
-  const ratingDisplay = document.getElementById("ratingDisplay");
-
-  stars.forEach((star) => {
-    const active = Number(star.dataset.star) <= selectedRating;
-
-    star.textContent = active ? "★" : "☆";
-    star.style.color = active ? "#fbbf24" : "#9ca3af";
-
-    star.setAttribute(
-      "aria-pressed",
-      String(Number(star.dataset.star) === selectedRating)
-    );
+      document.querySelectorAll("[data-star]").forEach((item) => {
+        const active = Number(item.dataset.star) <= selectedRating;
+        item.textContent = active ? "★" : "☆";
+        item.setAttribute(
+          "aria-pressed",
+          String(Number(item.dataset.star) === selectedRating)
+        );
+      });
+    });
   });
-
-  if (ratingInput) {
-    ratingInput.value = String(selectedRating);
-  }
-
-  if (ratingDisplay) {
-    ratingDisplay.textContent = `${selectedRating}/5`;
-  }
-}
-
-document.querySelectorAll("#stars [data-star]").forEach((star) => {
-  star.addEventListener("click", function () {
-    updateFeedbackStars(this.dataset.star);
-  });
-});
-
-// Initialize the rating display
-updateFeedbackStars(0);
-
 
   /* Feedback submission */
   $("submitFeedback")?.addEventListener("click", async function () {
