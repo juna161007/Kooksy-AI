@@ -391,11 +391,11 @@ key;
 
 const escapeHTML = (value) =>
 String(value ?? "").replace(/[&<>"']/g, (char) => ({
-"&": "&",
-"<": "<",
-">": ">",
-'"': """,
-"'": "'"
+"&": "&amp;",
+"<": "&lt;",
+">": "&gt;",
+'"': "&quot;",
+"'": "&#39;"
 })[char]);
 
 function notify(message, type = "info") {
@@ -702,97 +702,94 @@ return wrapper;
 /* ---------------- 8. CHAT ACTION BUTTONS ---------------- */
 
 document.addEventListener("click", async (event) => {
-const copyButton = event.target.closest(".message-copy-btn");
+  const target = event.target;
+  if (!(target instanceof Element)) return;
 
-if (copyButton) {  
-  const message = copyButton.closest(".message");  
+  const copyButton = target.closest(".message-copy-btn");
 
-  try {  
-    await navigator.clipboard.writeText(message?._messageText || "");  
-    notify(getText("copied"), "success");  
-  } catch {  
-    notify(getText("copyFailed"), "error");  
-  }  
+  if (copyButton) {
+    const message = copyButton.closest(".message");
 
-  return;  
-}  
+    try {
+      await navigator.clipboard.writeText(message?._messageText || "");
+      notify(getText("copied"), "success");
+    } catch {
+      notify(getText("copyFailed"), "error");
+    }
 
-const speakButton = event.target.closest(".message-speak-btn");  
+    return;
+  }
 
-if (speakButton) {  
-  const message = speakButton.closest(".message");  
+  const speakButton = target.closest(".message-speak-btn");
 
-  if (message?._messageText) {  
-    speakText(message._messageText);  
-  }  
+  if (speakButton) {
+    const message = speakButton.closest(".message");
 
-  return;  
-}  
+    if (message?._messageText) {
+      speakText(message._messageText);
+    }
 
-const codeCopyButton = event.target.closest(".copy-code-btn");  
+    return;
+  }
 
-if (codeCopyButton) {  
-  const message = codeCopyButton.closest(".message");  
-  const index = Number(codeCopyButton.dataset.codeIndex);  
-  const code = message?._codeBlocks?.[index]?.code;  
+  const codeCopyButton = target.closest(".copy-code-btn");
 
-  if (typeof code === "string") {  
-    try {  
-      await navigator.clipboard.writeText(code);  
-      notify(getText("copied"), "success");  
-    } catch {  
-      notify(getText("copyFailed"), "error");  
-    }  
-  }  
-}
+  if (codeCopyButton) {
+    const message = codeCopyButton.closest(".message");
+    const index = Number(codeCopyButton.dataset.codeIndex);
+    const code = message?._codeBlocks?.[index]?.code;
 
+    if (typeof code === "string") {
+      try {
+        await navigator.clipboard.writeText(code);
+        notify(getText("copied"), "success");
+      } catch {
+        notify(getText("copyFailed"), "error");
+      }
+    }
+  }
 });
 
 /* ---------------- 9. TEXT-TO-SPEECH ---------------- */
 
 function speakText(text) {
-if (!("speechSynthesis" in window)) {
-notify(getText("speechUnavailable"), "error");
-return;
-}
+  if (!("speechSynthesis" in window)) {
+    notify(getText("speechUnavailable"), "error");
+    return;
+  }
 
-window.speechSynthesis.cancel();  
+  window.speechSynthesis.cancel();
 
-const utterance = new SpeechSynthesisUtterance(  
-  String(text ?? "").slice(0, MAX_MESSAGE_LENGTH)  
-);  
+  const utterance = new SpeechSynthesisUtterance(
+    String(text ?? "").slice(0, MAX_MESSAGE_LENGTH)
+  );
 
-utterance.lang =  
-  LANGUAGE_VOICES[state.language] || "en-IN";  
+  utterance.lang = LANGUAGE_VOICES[state.language] || "en-IN";
+  utterance.rate = 1;
+  utterance.pitch = 1;
 
-utterance.rate = 1;  
-utterance.pitch = 1;  
+  utterance.onstart = () => {
+    state.speaking = true;
+  };
 
-utterance.onstart = () => {  
-  state.speaking = true;  
-};  
+  utterance.onend = () => {
+    state.speaking = false;
+  };
 
-utterance.onend = () => {  
-  state.speaking = false;  
-};  
+  utterance.onerror = () => {
+    state.speaking = false;
+  };
 
-utterance.onerror = () => {  
-  state.speaking = false;  
-};  
-
-window.speechSynthesis.speak(utterance);
-
+  window.speechSynthesis.speak(utterance);
 }
 
 function stopSpeaking() {
-if ("speechSynthesis" in window) {
-window.speechSynthesis.cancel();
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+
+  state.speaking = false;
 }
-
-state.speaking = false;
-
-}
-
 /* ---------------- 10. CHAT HISTORY STATE ---------------- */
 
 function clearChatDisplay() {
