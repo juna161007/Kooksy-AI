@@ -847,6 +847,7 @@ function getSelectedMode() {
     $("modeSelect") ||
     $("userMode") ||
     $("modeSelector") ||
+$("mode") ||
     document.querySelector('[name="mode"]:checked');
 
   return element?.value || "normal";
@@ -1057,9 +1058,9 @@ function bindChatControls() {
   });
 
   // Suggested prompts.
-  document.querySelectorAll(
-    ".suggestion-btn, [data-prompt]"
-  ).forEach((button) => {
+ document.querySelectorAll(
+  ".suggestion-btn, .suggestion, [data-prompt]"
+).forEach((button) => {
     if (button.dataset.kooksyBound) return;
 
     button.dataset.kooksyBound = "true";
@@ -1166,7 +1167,7 @@ function startVoiceInput() {
           "Allow microphone access and try again.",
         "error"
       );
-    } else if (event.error === "no-speech") {
+    } if (event.error === "no-speech") {
       notify(
         "No speech detected. Please try again.",
         "warning"
