@@ -34,7 +34,12 @@ app.config["SESSION_COOKIE_SECURE"] = os.getenv("COOKIE_SECURE", "false").lower(
 if not os.getenv("FLASK_SECRET_KEY"):
     app.logger.warning("Set FLASK_SECRET_KEY in your deployment environment for persistent sessions.")
 
-DATABASE = os.getenv("DATABASE_PATH", "kooksy_ai.db")
+from pathlib import Path
+
+DATABASE = os.getenv(
+    "DATABASE_PATH",
+    str(Path(__file__).resolve().parent / "kooksy_ai.db")
+)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
