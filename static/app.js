@@ -619,85 +619,76 @@ return { html: safe, codeBlocks };
 
 }
 
-/* ---------------- 7. CHAT MESSAGE DISPLAY ---------------- */
 
-function getChatContainer() {
-return (
-$("chatMessages") ||
-$("chat-messages") ||
-$("messages") ||
-$("chatHistory")
-);
-}
+  /* ---------------- 5. CSRF AND API REQUESTS ---------------- */
 
-function scrollChatToBottom() {
-const container = getChatContainer();
+  function readCSRFToken() {
+    return state.csrfToken || "";
+  }
 
-if (container) {  
-  container.scrollTop = container.scrollHeight;  
-}
+  async function apiRequest(url, options = {}) {
+    const method = (options.method || "GET").toUpperCase();
+    const headers = new Headers(options.headers || {});
 
-}
+    headers.set("Accept", "application/json");
 
-function addMessage(role, content, options = {}) {
-const container = getChatContainer();
+    // Fetch a fresh token before every API write request.
+    if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+      const tokenResponse = await fetch("/api/session", {
+        method: "GET",
+        credentials: "same-origin",
+        headers: { "Accept": "application/json" }
+      });
 
-if (!container) {  
-  console.warn("Kooksy AI: chat message container not found.");  
-  return null;  
-}  
+      const tokenData = await tokenResponse.json().catch(() => ({}));
 
-const isUser = role === "user";  
-const message = String(content ?? "");  
-const wrapper = document.createElement("div");  
+      if (!tokenResponse.ok || !tokenData.csrf_token) {
+        throw new Error(
+          tokenData.message ||
+          tokenData.error ||
+          "Could not load security token. Please log in again."
+        );
+      }
 
-wrapper.className = isUser  
-  ? "message user-message"  
-  : "message assistant-message";  
+      state.csrfToken = tokenData.csrf_token;
+      headers.set("X-CSRF-Token", state.csrfToken);
+    }
 
-wrapper.dataset.role = role;  
+    const response = await fetch(url, {
+      ...options,
+      method,
+      headers,
+      credentials: "same-origin"
+    });
 
-const rendered = isUser  
-  ? { html: escapeHTML(message).replace(/\n/g, "<br>"), codeBlocks: [] }  
-  : renderMarkdown(message);  
+    const contentType = response.headers.get("content-type") || "";
+    let data;
 
-wrapper.innerHTML = `  
-  <div class="message-avatar">  
-    ${isUser ? "You" : "✦"}  
-  </div>  
-  <div class="message-content">  
-    <div class="message-role">  
-      ${isUser ? escapeHTML(getText("user")) : escapeHTML(getText("ai"))}  
-    </div>  
-    <div class="message-body">${rendered.html}</div>  
-    ${  
-      !isUser  
-        ? `<div class="message-actions">  
-            <button type="button" class="message-copy-btn">  
-              ${escapeHTML(getText("copy"))}  
-            </button>  
-            <button type="button" class="message-speak-btn">  
-              ${escapeHTML(getText("speak"))}  
-            </button>  
-          </div>`  
-        : ""  
-    }  
-  </div>  
-`;  
+    if (contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      data = { message: await response.text() };
+    }
 
-wrapper._messageText = message;  
-wrapper._codeBlocks = rendered.codeBlocks;  
+    if (!response.ok) {
+      throw new Error(
+        data.message ||
+        data.error ||
+        `Request failed (HTTP ${response.status}).`
+      );
+    }
 
-if (options.id) {  
-  wrapper.dataset.messageId = String(options.id);  
-}  
+    return data;
+  }
 
-container.appendChild(wrapper);  
-scrollChatToBottom();  
+  function postJSON(url, payload) {
+    return apiRequest(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  }
 
-return wrapper;
-
-}
 
 /* ---------------- 8. CHAT ACTION BUTTONS ---------------- */
 
