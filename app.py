@@ -7,6 +7,7 @@ import secrets
 import re
 from datetime import datetime, timezone
 from functools import wraps
+from contextlib import contextmanager
 
 import requests
 from dotenv import load_dotenv
@@ -68,11 +69,27 @@ def now_iso():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+@contextmanager
 def get_db():
-    connection = sqlite3.connect(DATABASE, timeout=15)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")
-    return connection
+    """Open a SQLite connection and always close it after use."""
+    connection = None
+
+    try:
+        connection = sqlite3.connect(
+            DATABASE,
+            timeout=30
+        )
+        connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys = ON")
+        connection.execute("PRAGMA busy_timeout = 30000")
+
+        with connection:
+            yield connection
+
+    finally:
+        if connection is not None:
+            connection.close()
+
 
 
 def init_db():
