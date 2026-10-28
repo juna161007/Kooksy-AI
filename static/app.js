@@ -1242,33 +1242,30 @@ function startVoiceInput() {
     }
   };
 
-  recognition.onerror = (event) => {
-    console.error(
-      "Kooksy voice input error:",
-      event.error
-    );
+recognition.onerror = (event) => {
+  console.error("Kooksy voice input error:", event.error);
 
-    if (
-      event.error === "not-allowed" ||
-      event.error === "service-not-allowed"
-    ) {
-      notify(
-        getText("voicePermission") ||
-          "Allow microphone access and try again.",
-        "error"
-      );
-    } if (event.error === "no-speech") {
-      notify(
-        "No speech detected. Please try again.",
-        "warning"
-      );
-    } else if (event.error !== "aborted") {
-      notify(
-        "Voice input failed. Please try again.",
-        "error"
-      );
-    }
-  };
+  if (
+    event.error === "not-allowed" ||
+    event.error === "service-not-allowed"
+  ) {
+    notify(
+      getText("voicePermission"),
+      "error"
+    );
+  } else if (event.error === "no-speech") {
+    notify(
+      "No speech detected. Please try again.",
+      "warning"
+    );
+  } else if (event.error !== "aborted") {
+    notify(
+      "Voice input failed. Please try again.",
+      "error"
+    );
+  }
+};
+
 
   recognition.onend = () => {
     if (state.recognition === recognition) {
@@ -2495,7 +2492,47 @@ window.KooksyAI = Object.freeze({
   stopSpeaking,
   loadHistory: loadChatHistory,
   generateGoal,
-  generateWebsite: bindWebsiteCreator,
+generateWebsite,
+  
+function generateWebsite() {
+  const form =
+    $("websiteCreatorForm") ||
+    $("creatorForm") ||
+    $("websiteForm");
+
+  const input =
+    $("websiteIdea") ||
+    $("websitePrompt") ||
+    $("creatorPrompt") ||
+    form?.querySelector("textarea");
+
+  if (!form) {
+    notify(
+      "Website Creator form not found. Check index.html.",
+      "error"
+    );
+    return;
+  }
+
+  if (!input || !input.value.trim()) {
+    activateSection("creator");
+    input?.focus();
+    notify(getText("emptyIdea"), "warning");
+    return;
+  }
+
+  if (typeof form.requestSubmit === "function") {
+    form.requestSubmit();
+  } else {
+    form.dispatchEvent(
+      new Event("submit", {
+        bubbles: true,
+        cancelable: true
+      })
+    );
+  }
+}
+
   getState: () => ({
     language: state.language,
     busy: state.busy,
