@@ -454,78 +454,104 @@ state.busy = Boolean(value);
 
 }
 
+
 /* ---------------- 5. CSRF AND API REQUESTS ---------------- */
 
+async function initializeSession() {
+  try {
+    const response = await fetch("/api/session", {
+      method: "GET",
+      credentials: "same-origin",
+      headers: { Accept: "application/json" },
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Session request failed (HTTP ${response.status}). Please log in again.`
+      );
+    }
+
+    const data = await response.json();
+    const token = data.csrf_token || data.csrfToken || "";
+
+    if (!token) {
+      throw new Error("CSRF token was not returned by /api/session.");
+    }
+
+    state.csrfToken = token;
+    return token;
+  } catch (error) {
+    state.csrfToken = "";
+    console.error("Kooksy AI session initialization failed:", error);
+    throw error;
+  }
+}
+
 function readCSRFToken() {
-const meta = document.querySelector('meta[name="csrf-token"]');
-const input = document.querySelector(
-'input[name="csrf_token"], input[name="csrf-token"]'
-);
+  const meta = document.querySelector('meta[name="csrf-token"]');
+  const input = document.querySelector(
+    'input[name="csrf_token"], input[name="csrf-token"]'
+  );
 
-return (  
-  meta?.content ||  
-  input?.value ||  
-  document.querySelector('[name="csrfmiddlewaretoken"]')?.value ||  
-  state.csrfToken ||  
-  ""  
-);
-
+  return (
+    meta?.content ||
+    input?.value ||
+    document.querySelector('[name="csrfmiddlewaretoken"]')?.value ||
+    state.csrfToken ||
+    ""
+  );
 }
 
 async function apiRequest(url, options = {}) {
-const headers = new Headers(options.headers || {});
+  const method = (options.method || "GET").toUpperCase();
+  const headers = new Headers(options.headers || {});
 
-headers.set("Accept", "application/json");  
+  headers.set("Accept", "application/json");
 
-const token = readCSRFToken();  
+  if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
+    let token = readCSRFToken();
 
-if (token && !["GET", "HEAD", "OPTIONS"].includes(  
-  (options.method || "GET").toUpperCase()  
-)) {  
-  headers.set("X-CSRFToken", token);  
-  headers.set("X-CSRF-Token", token);  
-}  
+    if (!token) {
+      token = await initializeSession();
+    }
 
-const response = await fetch(url, {  
-  ...options,  
-  headers,  
-  credentials: "same-origin"  
-});  
+    headers.set("X-CSRF-Token", token);
+  }
 
-const contentType = response.headers.get("content-type") || "";  
-let data;  
+  const response = await fetch(url, {
+    ...options,
+    method,
+    headers,
+    credentials: "same-origin"
+  });
 
-if (contentType.includes("application/json")) {  
-  data = await response.json();  
-} else {  
-  const text = await response.text();  
-  data = { message: text };  
-}  
+  const contentType = response.headers.get("content-type") || "";
+  let data = {};
 
-if (response.status === 401 || response.status === 403) {  
-  throw new Error(  
-    data?.message || data?.error || getText("sessionExpired")  
-  );  
-}  
+  if (contentType.includes("application/json")) {
+    data = await response.json();
+  } else {
+    data.message = await response.text();
+  }
 
-if (!response.ok) {  
-  throw new Error(  
-    data?.error ||  
-    data?.message ||  
-    `Request failed (HTTP ${response.status}).`  
-  );  
-}  
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+      data?.message ||
+      `Request failed (HTTP ${response.status}).`
+    );
+  }
 
-return data;
-
+  return data;
 }
 
 function postJSON(url, payload) {
-return apiRequest(url, {
-method: "POST",
-headers: { "Content-Type": "application/json" },
-body: JSON.stringify(payload)
-});
+  return apiRequest(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 }
 
 /* ---------------- 6. SAFE MARKDOWN RENDERING ---------------- */
@@ -2418,6 +2444,9 @@ event.lineno
 
 function initializeKooksyAI() {
 try {
+  initializeSession().catch((error) => {
+  console.error("Could not initialize Kooksy AI session:", error);
+});
 bindChatControls();
 bindVoiceControls();
 bindLanguageControls();
