@@ -327,29 +327,35 @@
       </div>
     </section>
 
-    <!-- AGENT GOAL -->
-    <section class="page" id="page-goal">
-      <div class="tool-card">
-        <div class="eyebrow">AGENTIC PLANNING</div>
-        <h2>Turn a goal into a plan</h2>
-        <p class="muted">
-          Describe a real-world task. Kooksy AI will outline steps,
-          success criteria, risks, limitations, and actions needing your approval.
-        </p>
+  /* Agent Goal */
+  $("goalBtn")?.addEventListener("click", function () {
+    const input = $("goalInput");
+    const result = $("goalResult");
 
-        <label for="goalInput">What do you want to achieve?</label>
-        <textarea id="goalInput" rows="5" maxlength="20000"
-          placeholder="Example: Plan a student portfolio website and explain how I can publish it…"></textarea>
+    if (!input || !result) {
+      console.error("Agent Goal HTML elements are missing.");
+      alert("Agent Goal HTML elements not found.");
+      return;
+    }
 
-        <button class="primary" id="goalBtn" type="button">Generate plan ✦</button>
-        <div class="result prose" id="goalResult" aria-live="polite"></div>
+    const goal = input.value.trim();
 
-        <p class="muted small">
-          This feature generates a plan. It does not independently open apps,
-          send emails, make purchases, or deploy a website.
-        </p>
-      </div>
-    </section>
+    if (!goal) {
+      result.textContent = "Please enter your goal first.";
+      input.focus();
+      return;
+    }
+
+    if (typeof window.KooksyAI?.generateGoal !== "function") {
+      console.error("KooksyAI API:", window.KooksyAI);
+      console.error("generateGoal:", window.KooksyAI?.generateGoal);
+      alert("Agent Goal JavaScript function not loaded. Check static/app.js.");
+      return;
+    }
+
+    window.KooksyAI.generateGoal();
+  });
+
 
     <!-- WEBSITE CREATOR -->
     <section class="page" id="page-creator">
