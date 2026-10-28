@@ -2440,6 +2440,68 @@ event.lineno
 );
 });
 
+
+/* ---------------- 25.5. PUBLIC KOOKSY AI API ---------------- */
+
+/**
+ * Generate an Agent Goal plan.
+ * Keeps the existing goal form submission and API logic.
+ */
+function generateGoal() {
+  const form =
+    $("goalForm") ||
+    $("agentGoalForm");
+
+  const input =
+    $("goalInput") ||
+    $("agentGoalInput") ||
+    form?.querySelector("textarea, input[type='text']");
+
+  if (!form) {
+    notify("Agent Goal form not found. Check index.html.", "error");
+    return;
+  }
+
+  if (!input || !input.value.trim()) {
+    activateSection("goal");
+
+    if (input) {
+      input.focus();
+    }
+
+    notify(getText("emptyGoal"), "warning");
+    return;
+  }
+
+  if (typeof form.requestSubmit === "function") {
+    form.requestSubmit();
+  } else {
+    form.dispatchEvent(
+      new Event("submit", {
+        bubbles: true,
+        cancelable: true
+      })
+    );
+  }
+}
+
+/* Expose the existing frontend functions for index.html buttons. */
+window.KooksyAI = Object.freeze({
+  sendMessage,
+  startNewChat,
+  applyLanguage: applyTranslations,
+  startVoiceInput,
+  speakText,
+  stopSpeaking,
+  loadHistory: loadChatHistory,
+  generateGoal,
+  generateWebsite: bindWebsiteCreator,
+  getState: () => ({
+    language: state.language,
+    busy: state.busy,
+    activeHistoryId: state.activeHistoryId
+  })
+});
 /* ---------------- 26. INITIALIZATION ---------------- */
 
 function initializeKooksyAI() {
