@@ -539,75 +539,179 @@ def set_language():
 # CHAT AND HISTORY
 # ---------------------------------------------------------
 
+
 @app.post("/api/chat")
 @login_required
 def chat():
     data = get_json()
     prompt = safe_text(data.get("message"))
+
     if not prompt:
         return error_response("Please enter a message.")
+
     language = data.get("language", session.get("language", "en"))
     if language not in LANGUAGES:
         language = "en"
+
     mode = data.get("mode", "user")
     if mode not in ("user", "developer"):
         mode = "user"
+
     user_id = session.get("user_id")
     conversation_id = data.get("conversation_id")
+
     if mode == "developer":
-        prompt = "Developer mode is enabled. Help with programming, debugging, code explanations, and technical tasks. Provide code examples when appropriate. Explain the solution in the selected language.\n\n" + prompt
-    elif mode == "user":
-        prompt = "Normal User mode: answer naturally and simply. Do not provide code unless the user explicitly requests code.\n\n" + prompt
+        prompt = (
+            "Developer mode is enabled. Help with programming, debugging, "
+            "code explanations, and technical tasks. Provide code examples "
+            "when appropriate. Explain the solution in the selected language.\n\n"
+            + prompt
+        )
+    else:
+        prompt = (
+            "Normal User mode: answer naturally and simply. "
+            "Do not provide code unless the user explicitly requests code.\n\n"
+            + prompt
+        )
 
     try:
+        # Verify that the logged-in user exists in the current database.
         with get_db() as db:
+            user = db.execute(
+                "SELECT id FROM users WHERE id = ?",
+                (user_id,)
+            ).fetchone()
+
+            if user is None:
+                app.logger.warning(
+                    "Chat rejected: session user_id is missing from database."
+                )
+                session.clear()
+                return error_response(
+                    "Your session is no longer valid. Please log in again.",
+                    401
+                )
+
             conversation = None
+
             if conversation_id is not None:
                 try:
                     conversation_id = int(conversation_id)
                 except (TypeError, ValueError):
                     return error_response("Invalid conversation ID.")
-                conversation = owned_conversation(db, conversation_id, user_id)
+
+                conversation = owned_conversation(
+                    db, conversation_id, user_id
+                )
+
                 if not conversation:
-                    return error_response("Conversation not found.", 404)
+                    return error_response(
+                        "Conversation not found.",
+                        404
+                    )
+
             if conversation is None:
                 title = prompt[:60].replace("\n", " ").strip() or "New Chat"
                 timestamp = now_iso()
+
                 cursor = db.execute(
-                    "INSERT INTO conversations (user_id, title, created_at, updated_at) VALUES (?, ?, ?, ?)",
+                    """
+                    INSERT INTO conversations
+                    (user_id, title, created_at, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
                     (user_id, title, timestamp, timestamp)
                 )
+
                 conversation_id = cursor.lastrowid
+
             db.execute(
-                "INSERT INTO messages (conversation_id, role, content, created_at) VALUES (?, 'user', ?, ?)",
+                """
+                INSERT INTO messages
+                (conversation_id, role, content, created_at)
+                VALUES (?, 'user', ?, ?)
+                """,
                 (conversation_id, prompt, now_iso())
             )
+
             stored = db.execute(
-                "SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY id DESC LIMIT ?",
+                """
+                SELECT role, content
+                FROM messages
+                WHERE conversation_id = ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
                 (conversation_id, MAX_HISTORY_MESSAGES)
             ).fetchall()
-            messages = [{"role": row["role"], "content": row["content"][:4000]} for row in reversed(stored)]
+
+            messages = [
+                {
+                    "role": row["role"],
+                    "content": row["content"][:4000]
+                }
+                for row in reversed(stored)
+            ]
+
+        # Call the AI after saving the user's message.
         answer = call_groq(messages, language=language)
+
         with get_db() as db:
+            # Recheck user and conversation ownership before saving the answer.
+            user = db.execute(
+                "SELECT id FROM users WHERE id = ?",
+                (user_id,)
+            ).fetchone()
+
+            if user is None:
+                session.clear()
+                return error_response(
+                    "Your session is no longer valid. Please log in again.",
+                    401
+                )
+
             if not owned_conversation(db, conversation_id, user_id):
-                return error_response("Conversation not found.", 404)
+                return error_response(
+                    "Conversation not found.",
+                    404
+                )
+
             db.execute(
-                "INSERT INTO messages (conversation_id, role, content, created_at) VALUES (?, 'assistant', ?, ?)",
+                """
+                INSERT INTO messages
+                (conversation_id, role, content, created_at)
+                VALUES (?, 'assistant', ?, ?)
+                """,
                 (conversation_id, answer, now_iso())
             )
-            db.execute("UPDATE conversations SET updated_at = ? WHERE id = ? AND user_id = ?",
-                       (now_iso(), conversation_id, user_id))
+
+            db.execute(
+                """
+                UPDATE conversations
+                SET updated_at = ?
+                WHERE id = ? AND user_id = ?
+                """,
+                (now_iso(), conversation_id, user_id)
+            )
+
         return jsonify({
-            "success": True, "answer": answer, "conversation_id": conversation_id,
-            "language": language, "mode": mode,
-            "limitations": "AI responses can be incorrect or incomplete. Verify important information and test generated code."
+            "success": True,
+            "answer": answer,
+            "conversation_id": conversation_id,
+            "language": language,
+            "mode": mode,
+            "limitations": (
+                "AI responses can be incorrect or incomplete. "
+                "Verify important information and test generated code."
+            )
         })
+
     except RuntimeError as exc:
         return error_response(str(exc), 502)
+
     except sqlite3.Error:
         app.logger.exception("Database error in chat endpoint")
         return error_response("A database error occurred.", 500)
-
 
 @app.get("/api/history")
 @login_required
