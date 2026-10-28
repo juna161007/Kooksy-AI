@@ -2492,52 +2492,40 @@ window.KooksyAI = Object.freeze({
   stopSpeaking,
   loadHistory: loadChatHistory,
   generateGoal,
+
 generateWebsite,
+
   
 function generateWebsite() {
-  const form =
-    $("websiteCreatorForm") ||
-    $("creatorForm") ||
-    $("websiteForm");
 
-  const input =
-    $("websiteIdea") ||
-    $("websitePrompt") ||
-    $("creatorPrompt") ||
-    form?.querySelector("textarea");
+function generateWebsite() {
+  const input = $("ideaInput");
+  const button = $("createWebsiteBtn");
 
-  if (!form) {
+  if (!input || !button) {
     notify(
-      "Website Creator form not found. Check index.html.",
+      "Website Creator elements not found. Check index.html.",
       "error"
     );
     return;
   }
 
-  if (!input || !input.value.trim()) {
+  if (!input.value.trim()) {
     activateSection("creator");
-    input?.focus();
+    input.focus();
     notify(getText("emptyIdea"), "warning");
     return;
   }
 
-  if (typeof form.requestSubmit === "function") {
-    form.requestSubmit();
-  } else {
-    form.dispatchEvent(
-      new Event("submit", {
-        bubbles: true,
-        cancelable: true
-      })
-    );
-  }
+  activateSection("creator");
+  button.click();
 }
 
-  getState: () => ({
-    language: state.language,
-    busy: state.busy,
-    activeHistoryId: state.activeHistoryId
-  })
+getState: () => ({
+  language: state.language,
+  busy: state.busy,
+  activeHistoryId: state.activeHistoryId
+})
 });
 /* ---------------- 26. INITIALIZATION ---------------- */
 
