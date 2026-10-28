@@ -620,122 +620,198 @@ return { html: safe, codeBlocks };
 }
 
 
-  /* ---------------- 5. CSRF AND API REQUESTS ---------------- */
+ /* ---------------- 7. CHAT MESSAGE DISPLAY ---------------- */
 
-  function readCSRFToken() {
-    return state.csrfToken || "";
+function getChatContainer() {
+  return (
+    $("chatMessages") ||
+    $("chat-messages") ||
+    $("messages") ||
+    $("chatHistory") ||
+    $("chatContainer")
+  );
+}
+
+function scrollChatToBottom() {
+  const container = getChatContainer();
+
+  if (container) {
+    container.scrollTop = container.scrollHeight;
+  }
+}
+
+function addMessage(role, content, options = {}) {
+  const container = getChatContainer();
+
+  if (!container) {
+    console.error(
+      "Kooksy AI: Chat container not found. Check the chat container ID in index.html."
+    );
+    return null;
   }
 
-  async function apiRequest(url, options = {}) {
-    const method = (options.method || "GET").toUpperCase();
-    const headers = new Headers(options.headers || {});
+  const isAssistant = role === "assistant" || role === "ai";
+  const message = document.createElement("div");
 
-    headers.set("Accept", "application/json");
+  message.className = isAssistant
+    ? "message assistant-message"
+    : "message user-message";
 
-    // Fetch a fresh token before every API write request.
-    if (!["GET", "HEAD", "OPTIONS"].includes(method)) {
-      const tokenResponse = await fetch("/api/session", {
-        method: "GET",
-        credentials: "same-origin",
-        headers: { "Accept": "application/json" }
-      });
+  if (options.id != null) {
+    message.dataset.messageId = String(options.id);
+  }
 
-      const tokenData = await tokenResponse.json().catch(() => ({}));
+  const roleElement = document.createElement("div");
+  roleElement.className = "message-role";
+  roleElement.textContent = isAssistant
+    ? (typeof getText === "function" ? getText("ai") : "Kooksy AI")
+    : (typeof getText === "function" ? getText("user") : "You");
 
-      if (!tokenResponse.ok || !tokenData.csrf_token) {
-        throw new Error(
-          tokenData.message ||
-          tokenData.error ||
-          "Could not load security token. Please log in again."
-        );
-      }
+  const contentElement = document.createElement("div");
+  contentElement.className = "message-content";
 
-      state.csrfToken = tokenData.csrf_token;
-      headers.set("X-CSRF-Token", state.csrfToken);
-    }
+  const plainText = String(content ?? "");
 
-    const response = await fetch(url, {
-      ...options,
-      method,
-      headers,
-      credentials: "same-origin"
-    });
+  if (isAssistant && typeof renderMarkdown === "function") {
+    const rendered = renderMarkdown(plainText);
 
-    const contentType = response.headers.get("content-type") || "";
-    let data;
-
-    if (contentType.includes("application/json")) {
-      data = await response.json();
+    if (rendered && typeof rendered === "object" && "html" in rendered) {
+      contentElement.innerHTML = rendered.html;
+      message._codeBlocks = rendered.codeBlocks || [];
     } else {
-      data = { message: await response.text() };
+      contentElement.textContent = plainText;
+      message._codeBlocks = [];
     }
-
-    if (!response.ok) {
-      throw new Error(
-        data.message ||
-        data.error ||
-        `Request failed (HTTP ${response.status}).`
-      );
-    }
-
-    return data;
+  } else {
+    contentElement.textContent = plainText;
+    message._codeBlocks = [];
   }
 
-  function postJSON(url, payload) {
-    return apiRequest(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  message._messageText = plainText;
+
+  const actions = document.createElement("div");
+  actions.className = "message-actions";
+
+  const copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.className = "message-copy-btn";
+  copyButton.textContent = "Copy";
+  copyButton.title = "Copy message";
+  copyButton.setAttribute("aria-label", "Copy message");
+
+  actions.appendChild(copyButton);
+
+  if (isAssistant) {
+    const speakButton = document.createElement("button");
+    speakButton.type = "button";
+    speakButton.className = "message-speak-btn";
+    speakButton.textContent = "Listen";
+    speakButton.title = "Listen to response";
+    speakButton.setAttribute("aria-label", "Listen to response");
+
+    actions.appendChild(speakButton);
   }
 
+  message.append(roleElement, contentElement, actions);
+  container.appendChild(message);
+
+  scrollChatToBottom();
+
+  return message;
+}
 
 /* ---------------- 8. CHAT ACTION BUTTONS ---------------- */
 
 document.addEventListener("click", async (event) => {
-  const target = event.target;
-  if (!(target instanceof Element)) return;
+  if (!(event.target instanceof Element)) {
+    return;
+  }
 
-  const copyButton = target.closest(".message-copy-btn");
+  const copyMessageButton = event.target.closest(".message-copy-btn");
 
-  if (copyButton) {
-    const message = copyButton.closest(".message");
+  if (copyMessageButton) {
+    const message = copyMessageButton.closest(".message");
+    const text = message?._messageText;
+
+    if (typeof text !== "string") {
+      console.error("Kooksy AI: Message text not found.");
+      return;
+    }
 
     try {
-      await navigator.clipboard.writeText(message?._messageText || "");
-      notify(getText("copied"), "success");
-    } catch {
-      notify(getText("copyFailed"), "error");
+      await navigator.clipboard.writeText(text);
+
+      if (typeof showNotification === "function") {
+        showNotification("Message copied!", "success");
+      } else {
+        copyMessageButton.textContent = "Copied!";
+        setTimeout(() => {
+          copyMessageButton.textContent = "Copy";
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Kooksy AI: Could not copy message.", error);
+
+      if (typeof showNotification === "function") {
+        showNotification("Unable to copy message.", "error");
+      }
     }
 
     return;
   }
 
-  const speakButton = target.closest(".message-speak-btn");
+  const speakMessageButton = event.target.closest(".message-speak-btn");
 
-  if (speakButton) {
-    const message = speakButton.closest(".message");
+  if (speakMessageButton) {
+    const message = speakMessageButton.closest(".message");
+    const text = message?._messageText;
 
-    if (message?._messageText) {
-      speakText(message._messageText);
+    if (typeof text === "string" && text.trim()) {
+      if (typeof speakText === "function") {
+        speakText(text);
+      } else if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+      } else {
+        console.error("Kooksy AI: Speech synthesis is not supported.");
+      }
     }
 
     return;
   }
 
-  const codeCopyButton = target.closest(".copy-code-btn");
+  const copyCodeButton = event.target.closest(".copy-code-btn");
 
-  if (codeCopyButton) {
-    const message = codeCopyButton.closest(".message");
-    const index = Number(codeCopyButton.dataset.codeIndex);
-    const code = message?._codeBlocks?.[index]?.code;
+  if (copyCodeButton) {
+    const codeBlock = copyCodeButton
+      .closest("pre")
+      ?.querySelector("code");
 
-    if (typeof code === "string") {
-      try {
-        await navigator.clipboard.writeText(code);
-        notify(getText("copied"), "success");
-      } catch {
-        notify(getText("copyFailed"), "error");
+    const code = codeBlock?.textContent || "";
+
+    if (!code) {
+      console.error("Kooksy AI: Code block not found.");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(code);
+
+      if (typeof showNotification === "function") {
+        showNotification("Code copied!", "success");
+      } else {
+        copyCodeButton.textContent = "Copied!";
+        setTimeout(() => {
+          copyCodeButton.textContent = "Copy";
+        }, 1500);
+      }
+    } catch (error) {
+      console.error("Kooksy AI: Could not copy code.", error);
+
+      if (typeof showNotification === "function") {
+        showNotification("Unable to copy code.", "error");
       }
     }
   }
